@@ -120,7 +120,7 @@ export default function RecipeFinder() {
     <div className="flex">
       {/* Sidebar for Saved Ingredients */}
       <div className="w-80 min-h-screen bg-gray-100 shadow-md p-4">
-        <h3 className="text-xl font-semibold mb-4">Saved Ingredientss</h3>
+        <h3 className="text-xl font-semibold mb-4">Saved Ingredients</h3>
 
         {savedIngredients.length === 0 ? (
           <p className="text-gray-500">No ingredients saved</p>
