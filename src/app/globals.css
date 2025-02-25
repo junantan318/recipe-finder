@@ -2,20 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* 🌍 Global Styles */
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-gradient-to-br from-blue-50 to-blue-100 text-gray-800;
+  font-family: "Inter", sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* 🎨 Improve Text Styling */
+h1, h2, h3 {
+  @apply font-bold text-gray-900;
+}
+
+p {
+  @apply text-gray-700 leading-relaxed;
+}
+
+/* 🌟 Center Content */
+.container {
+  @apply flex items-center justify-center min-h-screen px-4;
+}
+
+/* 💡 Responsive Tweaks */
+@media (max-width: 768px) {
+  .container {
+    @apply px-6;
+  }
 }
