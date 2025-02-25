@@ -28,42 +28,43 @@ export default function RecipeFinder() {
       setError("Please add at least one ingredient!");
       return;
     }
-
+  
     setLoading(true);
     setError("");
-
+  
+    const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"; // ✅ Define baseUrl
     const ingredientQuery = savedIngredients.join(",");
-
+  
     try {
-      console.log("Fetching from Local API:", `/api/recipes?ingredient=${ingredientQuery}`);
-
-      const response = await fetch(`/api/recipes?ingredient=${ingredientQuery}`);
-
+      console.log("Fetching from Local API:", `${baseUrl}/api/recipes?ingredient=${ingredientQuery}`);
+  
+      const response = await fetch(`${baseUrl}/api/recipes?ingredient=${ingredientQuery}`);
+  
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
-
+  
       const data = await response.json();
-
+  
       if (!data.results || data.results.length === 0) {
         setError("No recipes found! Try different ingredients.");
         setRecipes([]);
         return;
       }
-
-      const updatedRecipes: Recipe[] = data.results.map((recipe: Recipe) => ({
+  
+      const updatedRecipes = data.results.map((recipe: Recipe) => ({
         id: recipe.id,
         title: recipe.title,
         image: recipe.image,
         sourceUrl: recipe.sourceUrl,
       }));
-
+  
       setRecipes(updatedRecipes);
     } catch (error) {
       console.error("Fetch Error:", error);
       setError("Failed to fetch recipes. Please try again.");
     }
-
+  
     setLoading(false);
   };
 
@@ -86,31 +87,34 @@ export default function RecipeFinder() {
   };
 
   // ✅ Function to ask AI (Cohere) for a recommended recipe
+  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"; // ✅ Define baseUrl
+
   const askAiForRecipe = async () => {
     if (savedIngredients.length === 0) {
       setAiRecipe("Please add ingredients first!");
       return;
     }
-
+  
     setAiLoading(true);
     setAiRecipe(null);
-
+  
     try {
-      const response = await fetch("/api/chat", {
+      const response = await fetch(`${baseUrl}/api/chat`, { // ✅ Now baseUrl is defined
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ingredients: savedIngredients }),
       });
-
+  
       const data = await response.json();
       setAiRecipe(data.reply);
     } catch (error) {
       console.error("Error fetching AI recipe:", error);
       setAiRecipe("Sorry, I couldn't generate a recipe.");
     }
-
+  
     setAiLoading(false);
   };
+  
 
   return (
     <div className="flex">
