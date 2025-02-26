@@ -32,11 +32,13 @@ export default function RecipeFinder() {
     setLoading(true);
     setError("");
   
-    const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"; // ✅ Define baseUrl
+    // ✅ Define baseUrl inside the function
+    const baseUrl = "http://localhost:3000";
+  
     const ingredientQuery = savedIngredients.join(",");
   
     try {
-      console.log("Fetching from Local API:", `${baseUrl}/api/recipes?ingredient=${ingredientQuery}`);
+      console.log("🔍 Fetching from Local API:", `${baseUrl}/api/recipes?ingredient=${ingredientQuery}`);
   
       const response = await fetch(`${baseUrl}/api/recipes?ingredient=${ingredientQuery}`);
   
@@ -61,12 +63,14 @@ export default function RecipeFinder() {
   
       setRecipes(updatedRecipes);
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("🚨 Fetch Error:", error);
       setError("Failed to fetch recipes. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  
-    setLoading(false);
   };
+  
+  
 
   // ✅ Add an ingredient to the saved list
   const addIngredient = () => {
@@ -87,8 +91,6 @@ export default function RecipeFinder() {
   };
 
   // ✅ Function to ask AI (Cohere) for a recommended recipe
-  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000"; // ✅ Define baseUrl
-
   const askAiForRecipe = async () => {
     if (savedIngredients.length === 0) {
       setAiRecipe("Please add ingredients first!");
@@ -98,24 +100,32 @@ export default function RecipeFinder() {
     setAiLoading(true);
     setAiRecipe(null);
   
+    // ✅ Define baseUrl inside the function
+    const baseUrl = "http://localhost:3000";
+  
     try {
-      const response = await fetch(`${baseUrl}/api/chat`, { // ✅ Now baseUrl is defined
-        method: "POST",
+      console.log("🔍 Sending request to AI:", `${baseUrl}/api/chat`);
+  
+      const response = await fetch(`${baseUrl}/api/chat`, {
+        method: "POST", // ✅ Ensure this is POST
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ingredients: savedIngredients }),
       });
   
+      if (!response.ok) {
+        throw new Error(`AI API error: ${response.status}`);
+      }
+  
       const data = await response.json();
       setAiRecipe(data.reply);
     } catch (error) {
-      console.error("Error fetching AI recipe:", error);
+      console.error("🚨 AI Fetch Error:", error);
       setAiRecipe("Sorry, I couldn't generate a recipe.");
+    } finally {
+      setAiLoading(false);
     }
-  
-    setAiLoading(false);
   };
   
-
   return (
     <div className="flex">
       {/* Sidebar for Saved Ingredients */}
