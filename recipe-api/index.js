@@ -43,6 +43,9 @@ app.get("/api/recipes", async (req, res) => {
   }
 });
 
+const cohere = require("cohere-ai");
+cohere.init(process.env.COHERE_API_KEY); // 🔐 Uses your .env key
+
 app.post("/api/chat", async (req, res) => {
   const ingredients = req.body.ingredients;
 
@@ -50,12 +53,25 @@ app.post("/api/chat", async (req, res) => {
     return res.status(400).json({ error: "No ingredients provided." });
   }
 
-  const fakeReply = `Based on your ingredients (${ingredients.join(", ")}), try making a delicious stew!`;
+  if (!process.env.COHERE_API_KEY) {
+    return res.status(500).json({ error: "Missing Cohere API key." });
+  }
 
-  res.json({ reply: fakeReply });
-});
+  const prompt = `Suggest a unique and delicious recipe using the following ingredients: ${ingredients.join(", ")}. Include a creative name and brief steps.`;
 
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  try {
+    const response = await cohere.generate({
+      model: "command",
+      prompt,
+      max_tokens: 150,
+      temperature: 0.7,
+    });
+
+    const aiReply = response.body.generations[0]?.text?.trim();
+
+    res.json({ reply: aiReply || "No recipe found." });
+  } catch (err) {
+    console.error("🔥 Cohere Chat Error:", err);
+    res.status(500).json({ error: "AI recipe generation failed." });
+  }
 });
