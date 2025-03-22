@@ -9,9 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // ✅ Now it's safe to define routes
-app.get("/", (req, res) => {
-  res.send("✅ Backend is up and running!");
-});
+
 
 app.get("/api/recipes", async (req, res) => {
   const ingredient = req.query.ingredient;
