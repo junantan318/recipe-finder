@@ -43,8 +43,12 @@ app.get("/api/recipes", async (req, res) => {
   }
 });
 
-const cohere = require("cohere-ai");
-cohere.init(process.env.COHERE_API_KEY); // 🔐 Uses your .env key
+const { createClient } = require("cohere-ai");
+
+const cohere = createClient({
+  apiKey: process.env.COHERE_API_KEY,
+});
+
 
 app.post("/api/chat", async (req, res) => {
   const ingredients = req.body.ingredients;
