@@ -176,7 +176,7 @@ export default function RecipeFinder() {
 
       {/* Main Content */}
       <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 text-center flex-1">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">🍽️ Recipe Finders</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-6">🍽️ Recipe Finder</h2>
 
         {/* ✅ Search Input + Add Ingredient Button */}
         <div className="flex gap-2 mb-6">
