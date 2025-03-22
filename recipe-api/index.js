@@ -42,40 +42,50 @@ app.get("/api/recipes", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch recipes from Tasty." });
   }
 });
-
-const { createClient } = require("cohere-ai");
-
-const cohere = createClient({
-  apiKey: process.env.COHERE_API_KEY,
-});
-
-
 app.post("/api/chat", async (req, res) => {
-  const ingredients = req.body.ingredients;
-
-  if (!ingredients || ingredients.length === 0) {
-    return res.status(400).json({ error: "No ingredients provided." });
-  }
-
-  if (!process.env.COHERE_API_KEY) {
-    return res.status(500).json({ error: "Missing Cohere API key." });
-  }
-
-  const prompt = `Suggest a unique and delicious recipe using the following ingredients: ${ingredients.join(", ")}. Include a creative name and brief steps.`;
-
-  try {
-    const response = await cohere.generate({
-      model: "command",
-      prompt,
-      max_tokens: 150,
-      temperature: 0.7,
-    });
-
-    const aiReply = response.body.generations[0]?.text?.trim();
-
-    res.json({ reply: aiReply || "No recipe found." });
-  } catch (err) {
-    console.error("🔥 Cohere Chat Error:", err);
-    res.status(500).json({ error: "AI recipe generation failed." });
-  }
-});
+    const API_KEY = process.env.COHERE_API_KEY;
+  
+    if (!API_KEY) {
+      console.error("🚨 Cohere API key is missing!");
+      return res.status(500).json({ error: "Cohere API key missing" });
+    }
+  
+    try {
+      const { ingredients } = req.body;
+  
+      if (!ingredients || ingredients.length === 0) {
+        return res.status(400).json({ error: "No ingredients provided" });
+      }
+  
+      const prompt = `
+        I have the following ingredients: ${ingredients.join(", ")}.
+        Suggest a creative recipe I can make with these.
+        Provide a recipe name, a short description, and key preparation steps.
+      `;
+  
+      const response = await fetch("https://api.cohere.ai/v1/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "command",
+          prompt,
+          max_tokens: 300,
+        }),
+      });
+  
+      if (!response.ok) {
+        console.error("Cohere API Error:", await response.text());
+        return res.status(500).json({ error: "Cohere API request failed" });
+      }
+  
+      const data = await response.json();
+      res.json({ reply: data.generations[0]?.text?.trim() });
+    } catch (error) {
+      console.error("API Error:", error);
+      res.status(500).json({ error: "Failed to generate recipe" });
+    }
+  });
+  
