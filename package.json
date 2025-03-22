@@ -26,3 +26,6 @@
     "typescript": "^5"
   }
 }
+"scripts": {
+  "start": "next start"
+}
