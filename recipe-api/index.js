@@ -8,8 +8,6 @@ const app = express(); // ✅ Define app FIRST
 app.use(cors());
 app.use(express.json());
 
-// ✅ Now it's safe to define routes
-
 
 app.get("/api/recipes", async (req, res) => {
   const ingredient = req.query.ingredient;
