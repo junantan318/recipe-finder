@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Trash2, PlusCircle, XCircle, Loader, User, LogIn } from "lucide-react";
+import { Search, Trash2, PlusCircle, XCircle, Loader, User } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
 

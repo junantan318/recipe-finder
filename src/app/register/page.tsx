@@ -32,7 +32,7 @@ export default function Register() {
         setSuccess(false);
         setMsg(data.error || '❌ Something went wrong. Please try again.');
       }
-    } catch (err) {
+    } catch  {
       setSuccess(false);
       setMsg('🚨 Network error. Please try again later.');
     } finally {
