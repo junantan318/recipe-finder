@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Trash2, PlusCircle, XCircle, Loader } from "lucide-react";
+import { Search, Trash2, PlusCircle, XCircle, Loader, User, LogIn } from "lucide-react";
 import Image from "next/image";
+import Link from 'next/link';
 
 // ✅ Define a TypeScript interface for recipes
 interface Recipe {
@@ -19,7 +20,6 @@ export default function RecipeFinder() {
   const [error, setError] = useState("");
   const [aiRecipe, setAiRecipe] = useState<string | null>(null); // AI-generated recipe
   const [aiLoading, setAiLoading] = useState(false); // AI loading state
-
   const [savedIngredients, setSavedIngredients] = useState<string[]>([]);
 
   // ✅ Fetch Recipes from API
@@ -96,6 +96,7 @@ export default function RecipeFinder() {
       setAiRecipe("Please add ingredients first!");
       return;
     }
+    
   
     setAiLoading(true);
     setAiRecipe(null);
@@ -127,91 +128,132 @@ export default function RecipeFinder() {
   };
   
   return (
-    <div className="flex">
-      {/* Sidebar for Saved Ingredients */}
-      <div className="w-80 min-h-screen bg-gray-100 shadow-md p-4">
-        <h3 className="text-xl font-semibold mb-4">Saved Ingredients</h3>
-
-        {savedIngredients.length === 0 ? (
-          <p className="text-gray-500">No ingredients saved</p>
-        ) : (
-          <>
-            <ul className="space-y-2">
-              {savedIngredients.map((ingredient) => (
-                <li key={ingredient} className="flex justify-between items-center bg-white p-2 rounded-lg shadow">
-                  <span className="text-gray-800">{ingredient}</span>
-                  <button onClick={() => removeIngredient(ingredient)} className="text-red-500 hover:text-red-700">
-                    <Trash2 size={18} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {/* Clear All Button */}
-            <button
-              onClick={clearIngredients}
-              className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg mt-4 flex items-center gap-2 justify-center"
-            >
-              <XCircle className="w-5 h-5" />
-              Clear All
-            </button>
-          </>
-        )}
-
-        {/* AI Recommendation Section */}
-        <button
-          onClick={askAiForRecipe}
-          className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg mt-4 flex items-center gap-2"
-        >
-          {aiLoading ? <Loader className="w-5 h-5 animate-spin" /> : "AI Recommend"}
-        </button>
-
-        {/* Display AI Recommendation */}
-        {aiRecipe && (
-          <div className="bg-gray-100 p-4 rounded-lg shadow-md mt-4 text-left">
-            <h3 className="text-lg font-semibold">🤖 AI Suggested Recipe:</h3>
-            <p className="text-gray-800 whitespace-pre-line">{aiRecipe}</p>
+    <div className="flex flex-col min-h-screen bg-blue-50">
+      {/* ✅ Topbar with Profile/Login */}
+      <div className="flex justify-end items-center px-6 py-4 shadow bg-white">
+        <Link href="/login" className="flex items-center">
+          <div className="flex items-center bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-300 group">
+            <User className="w-6 h-6 text-blue-600 group-hover:text-blue-800" />
+            <span className="ml-2 text-blue-600 group-hover:text-blue-800 hidden md:inline">
+              Login
+            </span>
           </div>
-        )}
+        </Link>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 text-center flex-1">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">🍽️ Recipe Finder</h2>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar for Saved Ingredients */}
+        <div className="w-80 bg-white border-r border-gray-200 p-6 space-y-6 overflow-y-auto">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Saved Ingredients</h3>
 
-        {/* ✅ Search Input + Add Ingredient Button */}
-        <div className="flex gap-2 mb-6">
-          <input
-            type="text"
-            placeholder="Enter an ingredient..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addIngredient();
-            }}
-            className="flex-1 border border-gray-300 p-3 rounded-lg text-lg focus:outline-none"
-          />
-          <button onClick={addIngredient} className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg flex items-center gap-2">
-            <PlusCircle className="w-5 h-5" /> Add
+          {savedIngredients.length === 0 ? (
+            <p className="text-gray-500 text-center">No ingredients saved</p>
+          ) : (
+            <>
+              <div className="space-y-3">
+                {savedIngredients.map((ingredient) => (
+                  <div 
+                    key={ingredient} 
+                    className="flex justify-between items-center bg-blue-50 p-3 rounded-lg shadow-sm hover:bg-blue-100 transition-colors"
+                  >
+                    <span className="text-gray-700 flex-grow">{ingredient}</span>
+                    <button 
+                      onClick={() => removeIngredient(ingredient)} 
+                      className="text-red-500 hover:text-red-700 ml-2"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Clear All Button */}
+              <button
+                onClick={clearIngredients}
+                className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+                <span>Clear All</span>
+              </button>
+            </>
+          )}
+
+          {/* AI Recommendation Section */}
+          <button
+            onClick={askAiForRecipe}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg mt-4 flex items-center justify-center space-x-2 transition-colors"
+          >
+            {aiLoading ? <Loader className="w-5 h-5 animate-spin" /> : "AI Recommend"}
           </button>
-          <button onClick={fetchRecipes} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg">
-            <Search className="w-5 h-5" />
-            {loading ? <Loader className="w-5 h-5 animate-spin" /> : "Search"}
-          </button>
+
+          {/* Display AI Recommendation */}
+          {aiRecipe && (
+            <div className="bg-blue-50 p-4 rounded-lg shadow-md mt-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">🤖 AI Suggested Recipe:</h3>
+              <p className="text-gray-700 whitespace-pre-line">{aiRecipe}</p>
+            </div>
+          )}
         </div>
 
-        {/* Display Error Message */}
-        {error && <p className="text-red-500 text-lg">{error}</p>}
+        {/* Main Content */}
+        <div className="flex-1 p-8 bg-blue-50 overflow-y-auto">
+          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">🍽️ Recipe Finder</h2>
 
-        {/* Recipe Results */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipes.map((recipe) => (
-            <div key={recipe.id} className="bg-gray-100 p-4 rounded-lg shadow-md">
-              <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer">
-                <Image src={recipe.image} alt={recipe.title} width={500} height={300} className="rounded-lg w-full h-48 object-cover" />
-                <h3 className="text-lg font-semibold mt-3 text-gray-800">{recipe.title}</h3>
-              </a>
+            {/* Search Input + Add Ingredient Button */}
+            <div className="flex gap-2 mb-6">
+              <input
+                type="text"
+                placeholder="Enter an ingredient..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addIngredient();
+                }}
+                className="flex-1 border border-gray-300 p-3 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+              <button 
+                onClick={addIngredient} 
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <PlusCircle className="w-5 h-5" /> 
+                <span className="hidden md:inline">Add</span>
+              </button>
+              <button 
+                onClick={fetchRecipes} 
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <Search className="w-5 h-5" />
+                <span className="hidden md:inline">{loading ? "Searching..." : "Search"}</span>
+              </button>
             </div>
-          ))}
+
+            {/* Display Error Message */}
+            {error && <p className="text-red-500 text-lg text-center">{error}</p>}
+
+            {/* Recipe Results */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recipes.map((recipe) => (
+                <div 
+                  key={recipe.id} 
+                  className="bg-blue-50 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                >
+                  <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer">
+                    <Image 
+                      src={recipe.image} 
+                      alt={recipe.title} 
+                      width={500} 
+                      height={300} 
+                      className="w-full h-48 object-cover" 
+                    />
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold text-gray-800 truncate">{recipe.title}</h3>
+                    </div>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -2,6 +2,10 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const fetch = require("node-fetch");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const User = require("./models/User");
+
 
 const app = express(); // ✅ Define app FIRST
 
@@ -101,3 +105,17 @@ console.log("🌐 Attempting to bind to port:", PORT);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running on port ${PORT}`);
 });
+
+app.post("/api/register", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ email, password: hashedPassword });
+    res.status(201).json({ message: "User registered", userId: user._id });
+  } catch (err) {
+    console.error("Register error:", err);
+    res.status(500).json({ error: "Registration failed" });
+  }
+});
+
