@@ -30,7 +30,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           {/* ✅ Top navbar */}
-          <header className="w-full bg-white shadow-md p-4 flex justify-between items-center object-top">
+          <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-md p-4 flex justify-between items-center">
             <Link href="/" className="text-xl font-bold text-blue-700">
               Recipe Finder
             </Link>

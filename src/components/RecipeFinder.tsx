@@ -22,6 +22,11 @@ export default function RecipeFinder() {
   const [aiRecipe, setAiRecipe] = useState<string | null>(null); // AI-generated recipe
   const [aiLoading, setAiLoading] = useState(false); // AI loading state
   const [savedIngredients, setSavedIngredients] = useState<string[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const toggle = (id: string) => {
+    setOpenId(prev => (prev === id ? null : id));
+  };
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -259,29 +264,50 @@ export default function RecipeFinder() {
             {error && <p className="text-red-500 text-lg text-center">{error}</p>}
 
             {/* Recipe Results */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recipes.map((recipe) => (
-                <div 
-                  key={recipe.id} 
-                  className="bg-blue-50 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                >
-                  <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer">
-                    <Image 
-                      src={recipe.image} 
-                      alt={recipe.title} 
-                      width={500} 
-                      height={300} 
-                      className="w-full h-48 object-cover" 
-                    />
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold text-gray-800 truncate">{recipe.title}</h3>
-                    </div>
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
+            
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  {recipes.map((recipe) => (
+    <div
+      key={recipe.id}
+      className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer"
+    >
+      <div onClick={() => toggle(recipe.id)}>
+        <img
+          src={recipe.image}
+          alt={recipe.title}
+          className="w-full h-48 object-cover rounded-t-xl"
+        />
+        <div className="p-4">
+          <h3 className="text-lg font-semibold text-gray-800 truncate">
+            {recipe.title}
+          </h3>
         </div>
+      </div>
+
+      {openId === recipe.id && (
+        <div className="border-t border-gray-200 p-4 space-y-2">
+          <a
+            href={recipe.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block text-blue-600 hover:underline"
+          >
+            🔗 View Full Recipe
+          </a>
+          <button
+            onClick={() => console.log("Saved to favorites:", recipe.title)}
+            className="text-sm text-green-600 hover:underline"
+          >
+            ❤️ Save to Favorites
+          </button>
+        </div>
+      )}
+    </div>
+  ))}
+</div>
+</div>
+</div>
+
         </div>
       </div>
   );
