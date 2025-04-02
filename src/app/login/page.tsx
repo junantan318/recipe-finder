@@ -1,89 +1,88 @@
 'use client';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { LogIn, UserPlus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
+  const router = useRouter();
+  const { login } = useAuth();
 
-  const login = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('token', data.token); // store JWT
-      setMsg('✅ Logged in!');
-    } else {
-      setMsg(data.error || 'Login failed');
+  const handleLogin = async () => {
+    setMsg("Logging in...");
+  
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await res.json();
+      console.log("🧾 Login response:", data);
+  
+      if (!res.ok) {
+        setMsg(data.error || "Login failed");
+        return;
+      }
+  
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('email', email);
+      login(); // Update context
+      setMsg("✅ Logged in!");
+      router.push('/'); // redirect after full setup
+    } catch (err) {
+      console.error("Login error:", err);
+      setMsg("Something went wrong");
     }
   };
-
+  
   return (
     <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
-          <p className="text-gray-500">Sign in to continue</p>
+          <h1 className="text-3xl font-bold text-blue-700">Login</h1>
+          <p className="text-sm text-gray-500">Enter your email and password to log in</p>
         </div>
 
         <div className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-gray-700 mb-2">Email Address</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full border border-gray-300 rounded-lg px-4 py-2"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
 
-          <div>
-            <label htmlFor="password" className="block text-gray-700 mb-2">Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+        <div className="text-center text-sm text-red-500">{msg}</div>
 
-          {msg && (
-            <p className={`text-center py-2 rounded ${msg.includes('✅') ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>
-              {msg}
-            </p>
-          )}
+        <button
+          onClick={handleLogin}
+          className="w-full bg-blue-600 text-white rounded-lg px-4 py-2 flex items-center justify-center space-x-2 hover:bg-blue-700"
+        >
+          <LogIn size={18} />
+          <span>Login</span>
+        </button>
 
-          <div className="flex space-x-4">
-            <button 
-              onClick={login} 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
-            >
-              <LogIn className="w-5 h-5" />
-              <span>Login</span>
-            </button>
-
-            <Link 
-              href="/register" 
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
-            >
-              <UserPlus className="w-5 h-5" />
-              <span>Register</span>
-            </Link>
-          </div>
-
-          <div className="text-center">
-            <a href="#" className="text-blue-600 hover:underline text-sm">Forgot Password?</a>
-          </div>
+        <div className="text-center text-sm">
+          Don’t have an account?{' '}
+          <Link href="/register" className="text-blue-600 hover:underline flex items-center justify-center">
+            <UserPlus size={14} className="mr-1" /> Register
+          </Link>
         </div>
       </div>
     </div>

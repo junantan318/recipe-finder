@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Search, Trash2, PlusCircle, XCircle, Loader, User } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
+
 
 // ✅ Define a TypeScript interface for recipes
 interface Recipe {
@@ -21,6 +22,25 @@ export default function RecipeFinder() {
   const [aiRecipe, setAiRecipe] = useState<string | null>(null); // AI-generated recipe
   const [aiLoading, setAiLoading] = useState(false); // AI loading state
   const [savedIngredients, setSavedIngredients] = useState<string[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+  
+    fetch('/api/ingredients', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(async res => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        const data = await res.json();
+        setSavedIngredients(data.ingredients || []);
+      })
+      .catch(err => {
+        console.error("Failed to load ingredients:", err);
+      });
+  }, []);
+  
+  
 
   // ✅ Fetch Recipes from API
   const fetchRecipes = async () => {
@@ -60,6 +80,7 @@ export default function RecipeFinder() {
         image: recipe.image,
         sourceUrl: recipe.sourceUrl,
       }));
+      
   
       setRecipes(updatedRecipes);
     } catch (error) {
@@ -75,15 +96,32 @@ export default function RecipeFinder() {
   // ✅ Add an ingredient to the saved list
   const addIngredient = () => {
     if (query.trim() && !savedIngredients.includes(query.toLowerCase())) {
-      setSavedIngredients([...savedIngredients, query.toLowerCase()]);
+      const updated = [...savedIngredients, query.toLowerCase()];
+      updateIngredients(updated);
       setQuery(""); // ✅ Clears input after adding
     }
   };
 
   // ✅ Remove a single ingredient
   const removeIngredient = (ingredient: string) => {
-    setSavedIngredients(savedIngredients.filter((item) => item !== ingredient));
+    const updated = savedIngredients.filter((item) => item !== ingredient);
+    updateIngredients(updated);
+
   };
+
+  const updateIngredients = (ingredients: string[]) => {
+    setSavedIngredients(ingredients);
+    const token = localStorage.getItem('token');
+    fetch('/api/ingredients', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ ingredients }),
+    });
+  };
+  
 
   // ✅ Clear all ingredients
   const clearIngredients = () => {
@@ -128,18 +166,7 @@ export default function RecipeFinder() {
   };
   
   return (
-    <div className="flex flex-col min-h-screen bg-blue-50">
-      {/* ✅ Topbar with Profile/Login */}
-      <div className="flex justify-end items-center px-6 py-4 shadow bg-white">
-        <Link href="/login" className="flex items-center">
-          <div className="flex items-center bg-blue-100 hover:bg-blue-200 rounded-full p-2 transition-colors duration-300 group">
-            <User className="w-6 h-6 text-blue-600 group-hover:text-blue-800" />
-            <span className="ml-2 text-blue-600 group-hover:text-blue-800 hidden md:inline">
-              Login
-            </span>
-          </div>
-        </Link>
-      </div>
+  <div className="flex flex-col min-h-screen pt-[72px]">  {/* push content below navbar */}
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for Saved Ingredients */}
@@ -255,7 +282,7 @@ export default function RecipeFinder() {
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
   );
 }
