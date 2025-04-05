@@ -45,6 +45,24 @@ export default function RecipeFinder() {
       });
   }, []);
   
+  const saveFavorite = async (recipe) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch("/api/favorites", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(recipe)
+    });
+  
+    if (res.ok) {
+      alert("✅ Recipe saved to favorites!");
+    } else {
+      alert("❌ Failed to save. Please try again.");
+    }
+  };
+  
   
 
   // ✅ Fetch Recipes from API
@@ -209,6 +227,15 @@ export default function RecipeFinder() {
               </button>
             </>
           )}
+          <hr className="my-4 border-gray-300" />
+
+<Link
+  href="/favorites"
+  className="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-center transition-colors"
+>
+  ❤️ View Favorites
+</Link>
+
 
           {/* AI Recommendation Section */}
           <button
@@ -294,12 +321,7 @@ export default function RecipeFinder() {
           >
             🔗 View Full Recipe
           </a>
-          <button
-            onClick={() => console.log("Saved to favorites:", recipe.title)}
-            className="text-sm text-green-600 hover:underline"
-          >
-            ❤️ Save to Favorites
-          </button>
+          <button onClick={() => saveFavorite(recipe)}>❤️ Save to Favorites</button>
         </div>
       )}
     </div>

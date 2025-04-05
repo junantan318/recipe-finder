@@ -1,22 +1,17 @@
-import mongoose, { Schema, models, model } from 'mongoose';
+import mongoose from 'mongoose';
 
-const UserSchema = new Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  savedIngredients: {
-    type: [String],
-    default: [],
-  },
+const UserSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: String,
+  savedIngredients: [String],
+  favorites: [
+    {
+      id: String,
+      title: String,
+      image: String,
+      sourceUrl: String,
+    }
+  ]
 });
 
-// Prevent model overwrite on hot reload
-const User = models.User || model('User', UserSchema);
-
-export default User;
+export default mongoose.models.User || mongoose.model('User', UserSchema);
