@@ -23,34 +23,41 @@ export default function RecipeFinder() {
   const [aiLoading, setAiLoading] = useState(false); // AI loading state
   const [savedIngredients, setSavedIngredients] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [cuisine, setCuisine] = useState("");
-  const [allergens, setAllergens] = useState("");
   const [exclude, setExclude] = useState("");
   const [diet, setDiet] = useState("");
   const [type, setType] = useState("");
   const [tags, setTags] = useState("");
-  const [useMock, setUseMock] = useState(true); // true = demo mode
   const toggle = (id: string) => {
     setOpenId(prev => (prev === id ? null : id));
   };
 
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) return;
   
-    fetch('/api/ingredients', {
-      headers: { Authorization: `Bearer ${token}` }
+    fetch("/api/ingredients", {
+      headers: { Authorization: `Bearer ${token}` },
     })
-      .then(async res => {
-        if (!res.ok) throw new Error('Failed to fetch');
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch");
         const data = await res.json();
-        setSavedIngredients(data.ingredients || []);
+  
+        // Normalize to names if using Ingredient model
+        const names = Array.isArray(data)
+          ? data.map((item: { name: string }) => item.name)
+          : data.ingredients || [];
+  
+        setSavedIngredients(names);
       })
-      .catch(err => {
-        console.error("Failed to load ingredients:", err);
+      .catch((err) => {
+        console.error("❌ Failed to load saved ingredients:", err);
       });
   }, []);
+  
+  
+
+  
   
   const saveFavorite = async (recipe) => {
     const token = localStorage.getItem("token");
@@ -87,14 +94,9 @@ export default function RecipeFinder() {
     setLoading(true);
     setError("");
 
-    const isLocal = typeof window !== "undefined" && window.location.hostname === "localhost";
-    const baseUrl = useMock ? "http://localhost:3000" : process.env.NEXT_PUBLIC_API_URL;
-
-    const isMockEnabled = useMock && isLocal;
-    const path = isMockEnabled ? "/api/mock/recipes" : "/api/recipes";
-
-    // Build exclude options based on savedIngredients
-    const excludeOptions = savedIngredients.filter(i => i !== "").map(i => ({ label: i, value: i }));
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    const path = "/api/recipes";
+    
 
     const queryParams = new URLSearchParams({
       ...(savedIngredients.length && { ingredient: savedIngredients.join(",") }),
@@ -161,44 +163,65 @@ export default function RecipeFinder() {
   );
 
   // ✅ Add an ingredient to the saved list
-  const addIngredient = () => {
-    if (query.trim() && !savedIngredients.includes(query.toLowerCase())) {
-      const updated = [...savedIngredients, query.toLowerCase()];
-      updateIngredients(updated);
-      setQuery(""); // ✅ Clears input after adding
+  const addIngredient = async () => {
+    const trimmed = query.trim().toLowerCase();
+    if (trimmed && !savedIngredients.includes(trimmed)) {
+      const updated = [...savedIngredients, trimmed];
+      setSavedIngredients(updated);
+      setQuery(""); // clear input
+  
+      // POST only the new ingredient
+      const token = localStorage.getItem("token");
+      await fetch("/api/ingredients", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: trimmed }),
+      });
     }
   };
+  
 
   // ✅ Remove a single ingredient
-  const removeIngredient = (ingredient: string) => {
+  const removeIngredient = async (ingredient: string) => {
+    // Update local state
     const updated = savedIngredients.filter((item) => item !== ingredient);
-    updateIngredients(updated);
-
-  };
-
-  const updateIngredients = (ingredients: string[]) => {
-    setSavedIngredients(ingredients);
-    const token = localStorage.getItem('token');
-    fetch('/api/ingredients', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ ingredients }),
-    });
+    setSavedIngredients(updated);
+  
+    // Update DB
+    const token = localStorage.getItem("token");
+  
+    try {
+      const response = await fetch("/api/ingredients", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: ingredient }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete ingredient");
+      }
+  
+      console.log(`🗑️ Deleted ingredient: ${ingredient}`);
+    } catch (err) {
+      console.error("❌ Error deleting ingredient:", err);
+    }
   };
   
 
   // ✅ Clear all ingredients
   const clearIngredients = async () => {
     try {
-      // Clear frontend state
-      setSavedIngredients([]);
-  
-      // 🔁 If you're storing ingredients in the DB, call your API to update it
+      setSavedIngredients([]); // clear local state
+
+      console.log("🧹 Clearing ingredients...");
       const response = await fetch("/api/ingredients", {
-        method: "PUT", // or DELETE depending on your API design
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ingredients: [] }),
       });
@@ -207,12 +230,12 @@ export default function RecipeFinder() {
         throw new Error("Failed to update saved ingredients in the database.");
       }
   
-      // ✅ Optionally clear localStorage
-      localStorage.removeItem("savedIngredients");
+      console.log("✅ Cleared ingredients in DB.");
     } catch (err) {
       console.error("🚨 Failed to clear ingredients:", err);
     }
   };
+  
   
 
   // ✅ Function to ask AI (Cohere) for a recommended recipe
@@ -231,7 +254,7 @@ export default function RecipeFinder() {
   
     try {
       console.log("🔍 Sending request to AI:", `${baseUrl}/api/chat`);
-  
+
       const response = await fetch(`${baseUrl}/api/chat`, {
         method: "POST", // ✅ Ensure this is POST
         headers: { "Content-Type": "application/json" },
@@ -389,20 +412,7 @@ export default function RecipeFinder() {
 
 <ExcludeDropdown />
 
-
-<div className="mb-4">
-  <label className="flex items-center gap-2 text-sm">
-    <input
-      type="checkbox"
-      checked={useMock}
-      onChange={(e) => setUseMock(e.target.checked)}
-    />
-    Use mock data (for demo)
-  </label>
 </div>
-
-</div>
-
 
             {/* Display Error Message */}
             {error && <p className="text-red-500 text-lg text-center">{error}</p>}
