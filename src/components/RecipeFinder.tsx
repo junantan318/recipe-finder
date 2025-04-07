@@ -28,6 +28,7 @@ export default function RecipeFinder() {
   const [exclude, setExclude] = useState("");
   const [diet, setDiet] = useState("");
   const [type, setType] = useState("");
+  const [tags, setTags] = useState("");
   const [useMock, setUseMock] = useState(true); // true = demo mode
   const toggle = (id: string) => {
     setOpenId(prev => (prev === id ? null : id));
@@ -74,59 +75,59 @@ export default function RecipeFinder() {
   const fetchRecipes = async () => {
     if (
       savedIngredients.length === 0 &&
-      !cuisine &&
       !diet &&
       !type &&
-      !allergens &&
+      !tags &&
       !exclude
     ) {
       setError("Please select at least one filter or ingredient!");
       return;
     }
-  
+
     setLoading(true);
     setError("");
-  
+
     const isLocal = typeof window !== "undefined" && window.location.hostname === "localhost";
     const baseUrl = useMock ? "http://localhost:3000" : process.env.NEXT_PUBLIC_API_URL;
-  
-    // ✅ Only allow mock mode when running locally
+
     const isMockEnabled = useMock && isLocal;
     const path = isMockEnabled ? "/api/mock/recipes" : "/api/recipes";
-  
+
+    // Build exclude options based on savedIngredients
+    const excludeOptions = savedIngredients.filter(i => i !== "").map(i => ({ label: i, value: i }));
+
     const queryParams = new URLSearchParams({
       ...(savedIngredients.length && { ingredient: savedIngredients.join(",") }),
-      ...(cuisine && { cuisine }),
-      ...(allergens && { allergens }),
-      ...(exclude && { exclude }),
       ...(diet && { diet }),
       ...(type && { type }),
+      ...(tags && { tags }),
+      ...(exclude && { exclude }),
     }).toString();
-  
+
     try {
       console.log("🔍 Fetching from:", `${baseUrl}${path}?${queryParams}`);
-  
+
       const response = await fetch(`${baseUrl}${path}?${queryParams}`);
-  
+
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
-  
+
       const data = await response.json();
-  
+
       if (!data.results || data.results.length === 0) {
         setError("No recipes found! Try different filters.");
         setRecipes([]);
         return;
       }
-  
+
       const updatedRecipes = data.results.map((recipe: Recipe) => ({
         id: recipe.id,
         title: recipe.title,
         image: recipe.image,
         sourceUrl: recipe.sourceUrl,
       }));
-  
+
       setRecipes(updatedRecipes);
     } catch (error) {
       console.error("🚨 Fetch Error:", error);
@@ -135,7 +136,29 @@ export default function RecipeFinder() {
       setLoading(false);
     }
   };
-    
+
+  const excludeOptions = savedIngredients.filter(i => i !== "").map(i => ({ label: i, value: i }));
+
+  const ExcludeDropdown = () => (
+    <select
+      value={exclude}
+      onChange={(e) => setExclude(e.target.value)}
+      className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
+    >
+      {excludeOptions.length === 0 ? (
+        <option value="">No ingredients available to exclude</option>
+      ) : (
+        <>
+          <option value="">Exclude Ingredient</option>
+          {excludeOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </>
+      )}
+    </select>
+  );
 
   // ✅ Add an ingredient to the saved list
   const addIngredient = () => {
@@ -168,9 +191,29 @@ export default function RecipeFinder() {
   
 
   // ✅ Clear all ingredients
-  const clearIngredients = () => {
-    setSavedIngredients([]);
+  const clearIngredients = async () => {
+    try {
+      // Clear frontend state
+      setSavedIngredients([]);
+  
+      // 🔁 If you're storing ingredients in the DB, call your API to update it
+      const response = await fetch("/api/ingredients", {
+        method: "PUT", // or DELETE depending on your API design
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredients: [] }),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update saved ingredients in the database.");
+      }
+  
+      // ✅ Optionally clear localStorage
+      localStorage.removeItem("savedIngredients");
+    } catch (err) {
+      console.error("🚨 Failed to clear ingredients:", err);
+    }
   };
+  
 
   // ✅ Function to ask AI (Cohere) for a recommended recipe
   const askAiForRecipe = async () => {
@@ -310,40 +353,6 @@ export default function RecipeFinder() {
             {/* Filters Section */}
 <div className="w-full flex flex-col md:flex-row gap-2 mb-4">
 <select
-  value={cuisine}
-  onChange={(e) => setCuisine(e.target.value)}
-  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
->
-  <option value="">Select Cuisine</option>
-  <option value="African">African</option>
-  <option value="American">American</option>
-  <option value="British">British</option>
-  <option value="Cajun">Cajun</option>
-  <option value="Caribbean">Caribbean</option>
-  <option value="Chinese">Chinese</option>
-  <option value="Eastern European">Eastern European</option>
-  <option value="European">European</option>
-  <option value="French">French</option>
-  <option value="German">German</option>
-  <option value="Greek">Greek</option>
-  <option value="Indian">Indian</option>
-  <option value="Irish">Irish</option>
-  <option value="Italian">Italian</option>
-  <option value="Japanese">Japanese</option>
-  <option value="Jewish">Jewish</option>
-  <option value="Korean">Korean</option>
-  <option value="Latin American">Latin American</option>
-  <option value="Mediterranean">Mediterranean</option>
-  <option value="Mexican">Mexican</option>
-  <option value="Middle Eastern">Middle Eastern</option>
-  <option value="Nordic">Nordic</option>
-  <option value="Southern">Southern</option>
-  <option value="Spanish">Spanish</option>
-  <option value="Thai">Thai</option>
-  <option value="Vietnamese">Vietnamese</option>
-</select>
-
-<select
   value={diet}
   onChange={(e) => setDiet(e.target.value)}
   className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
@@ -351,7 +360,7 @@ export default function RecipeFinder() {
   <option value="">Any Diet</option>
   <option value="vegetarian">Vegetarian</option>
   <option value="vegan">Vegan</option>
-  <option value="ketogenic">Ketogenic</option>
+  <option value="gluten_free">Gluten Free</option>
 </select>
 
 <select
@@ -360,10 +369,25 @@ export default function RecipeFinder() {
   className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
 >
   <option value="">Any Type</option>
-  <option value="main course">Main Course</option>
-  <option value="appetizer">Appetizer</option>
+  <option value="breakfast">Breakfast</option>
+  <option value="lunch">Lunch</option>
+  <option value="dinner">Dinner</option>
+  <option value="snack">Snack</option>
   <option value="dessert">Dessert</option>
 </select>
+
+<select
+  value={tags}
+  onChange={(e) => setTags(e.target.value)}
+  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
+>
+  <option value="">Any Theme</option>
+  <option value="under_30_minutes">Under 30 Minutes</option>
+  <option value="easy">Easy</option>
+  <option value="healthy">Healthy</option>
+</select>
+
+<ExcludeDropdown />
 
 
 <div className="mb-4">

@@ -1,66 +1,77 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
 
-const validCuisines = [
-  "African", "American", "British", "Cajun", "Caribbean", "Chinese", "Eastern European",
-  "European", "French", "German", "Greek", "Indian", "Irish", "Italian", "Japanese",
-  "Jewish", "Korean", "Latin American", "Mediterranean", "Mexican", "Middle Eastern",
-  "Nordic", "Southern", "Spanish", "Thai", "Vietnamese"
-];
-
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const ingredientParam = searchParams.get("ingredient");
-  const cuisineRaw = searchParams.get("cuisine");
-  const allergensParam = searchParams.get("allergens");
   const excludeParam = searchParams.get("exclude");
   const dietParam = searchParams.get("diet");
   const typeParam = searchParams.get("type");
-
-  if (cuisineRaw && !validCuisines.includes(cuisineRaw)) {
-    return NextResponse.json(
-      { error: "Invalid cuisine type provided" },
-      { status: 400 }
-    );
-  }
+  const tagsParam = searchParams.get("tags");
 
   const includeIngredients = ingredientParam || "";
-  const excludeIngredients = excludeParam || "";
-  const cuisine = cuisineRaw || "";
-  const intolerances = allergensParam || "";
+  const excludeIngredient = excludeParam?.toLowerCase() || "";
 
-  const apiKey = process.env.SPOON_KEY;
-  const apiUrl = "https://api.spoonacular.com/recipes/complexSearch";
+  const apiKey = process.env.RAPIDAPI_KEY;
+  const apiUrl = "https://tasty.p.rapidapi.com/recipes/list";
 
-  const params: Record<string, any> = {
-    number: 10,
-    addRecipeInformation: true,
-    fillIngredients: true,
-    apiKey,
+  const headers = {
+    "X-RapidAPI-Key": apiKey,
+    "X-RapidAPI-Host": "tasty.p.rapidapi.com"
   };
 
-  if (includeIngredients) params.includeIngredients = includeIngredients;
-  if (excludeIngredients) params.excludeIngredients = excludeIngredients;
-  if (cuisine) params.cuisine = cuisine;
-  if (intolerances) params.intolerances = intolerances;
-  if (dietParam) params.diet = dietParam;
-  if (typeParam) params.type = typeParam;
+  const params: Record<string, any> = {
+    from: 0,
+    size: 40,
+  };
 
-  console.log("Requesting Spoonacular with params:", params);
+  if (includeIngredients) params.q = includeIngredients;
+
+  const tastyDiet = {
+    "vegetarian": "vegetarian",
+    "vegan": "vegan",
+    "gluten free": "gluten_free"
+  }[dietParam || ""];
+
+  const tastyType = {
+    "breakfast": "breakfast",
+    "dessert": "dessert",
+    "snack": "snack",
+    "main course": "dinner",
+    "lunch": "lunch",
+    "dinner": "dinner"
+  }[typeParam || ""];
+
+  if (tastyDiet) params.tags = tastyDiet;
+  if (tastyType) params.tags = params.tags ? `${params.tags},${tastyType}` : tastyType;
+  if (tagsParam) params.tags = params.tags ? `${params.tags},${tagsParam}` : tagsParam;
+
+  console.log("🔍 Requesting Tasty API with:", { params });
 
   try {
-    const response = await axios.get(apiUrl, { params });
-    console.log("Spoonacular API response:", JSON.stringify(response.data, null, 2));
+    const response = await axios.get(apiUrl, { params, headers });
     const results = response.data.results || [];
 
-    // Apply strict cuisine filtering
-    const strictlyFiltered = cuisine
-      ? results.filter(recipe => recipe.cuisines?.includes(cuisine))
-      : results;
+    results.forEach(recipe => {
+      console.log("📦", recipe.name, "→ tags:", recipe.tags);
+    });
 
-    return NextResponse.json({ results: strictlyFiltered });
+    const strictlyFiltered = results.filter(recipe => {
+      const description = recipe.description?.toLowerCase() || "";
+      const matchesExclude = excludeIngredient ? !description.includes(excludeIngredient) : true;
+      return matchesExclude;
+    });
+
+    const formattedRecipes = strictlyFiltered.map(recipe => ({
+      id: recipe.id,
+      title: recipe.name,
+      image: recipe.thumbnail_url || "/fallback.jpg",
+      sourceUrl: recipe.original_video_url || `https://tasty.co/recipe/${recipe.slug}`
+    }));
+
+    return NextResponse.json({ results: formattedRecipes });
   } catch (error: any) {
-    console.error("Error fetching from Spoonacular:", error);
+    console.error("❌ Tasty API Error:", error?.response?.data || error.message);
     return NextResponse.json(
       { error: "Failed to fetch recipes", details: error.message },
       { status: 500 }
