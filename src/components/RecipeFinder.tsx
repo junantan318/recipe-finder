@@ -23,6 +23,12 @@ export default function RecipeFinder() {
   const [aiLoading, setAiLoading] = useState(false); // AI loading state
   const [savedIngredients, setSavedIngredients] = useState<string[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [cuisine, setCuisine] = useState("");
+  const [allergens, setAllergens] = useState("");
+  const [exclude, setExclude] = useState("");
+  const [diet, setDiet] = useState("");
+  const [type, setType] = useState("");
+  const [useMock, setUseMock] = useState(true); // true = demo mode
   const toggle = (id: string) => {
     setOpenId(prev => (prev === id ? null : id));
   };
@@ -63,27 +69,44 @@ export default function RecipeFinder() {
     }
   };
   
-  
 
   // ✅ Fetch Recipes from API
   const fetchRecipes = async () => {
-    if (savedIngredients.length === 0) {
-      setError("Please add at least one ingredient!");
+    if (
+      savedIngredients.length === 0 &&
+      !cuisine &&
+      !diet &&
+      !type &&
+      !allergens &&
+      !exclude
+    ) {
+      setError("Please select at least one filter or ingredient!");
       return;
     }
   
     setLoading(true);
     setError("");
   
-    // ✅ Define baseUrl inside the function
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+    const isLocal = typeof window !== "undefined" && window.location.hostname === "localhost";
+    const baseUrl = useMock ? "http://localhost:3000" : process.env.NEXT_PUBLIC_API_URL;
   
-    const ingredientQuery = savedIngredients.join(",");
+    // ✅ Only allow mock mode when running locally
+    const isMockEnabled = useMock && isLocal;
+    const path = isMockEnabled ? "/api/mock/recipes" : "/api/recipes";
+  
+    const queryParams = new URLSearchParams({
+      ...(savedIngredients.length && { ingredient: savedIngredients.join(",") }),
+      ...(cuisine && { cuisine }),
+      ...(allergens && { allergens }),
+      ...(exclude && { exclude }),
+      ...(diet && { diet }),
+      ...(type && { type }),
+    }).toString();
   
     try {
-      console.log("🔍 Fetching from Local API:", `${baseUrl}/api/recipes?ingredient=${ingredientQuery}`);
+      console.log("🔍 Fetching from:", `${baseUrl}${path}?${queryParams}`);
   
-      const response = await fetch(`${baseUrl}/api/recipes?ingredient=${ingredientQuery}`);
+      const response = await fetch(`${baseUrl}${path}?${queryParams}`);
   
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
@@ -92,7 +115,7 @@ export default function RecipeFinder() {
       const data = await response.json();
   
       if (!data.results || data.results.length === 0) {
-        setError("No recipes found! Try different ingredients.");
+        setError("No recipes found! Try different filters.");
         setRecipes([]);
         return;
       }
@@ -103,7 +126,6 @@ export default function RecipeFinder() {
         image: recipe.image,
         sourceUrl: recipe.sourceUrl,
       }));
-      
   
       setRecipes(updatedRecipes);
     } catch (error) {
@@ -113,8 +135,7 @@ export default function RecipeFinder() {
       setLoading(false);
     }
   };
-  
-  
+    
 
   // ✅ Add an ingredient to the saved list
   const addIngredient = () => {
@@ -286,6 +307,78 @@ export default function RecipeFinder() {
                 <span className="hidden md:inline">{loading ? "Searching..." : "Search"}</span>
               </button>
             </div>
+            {/* Filters Section */}
+<div className="w-full flex flex-col md:flex-row gap-2 mb-4">
+<select
+  value={cuisine}
+  onChange={(e) => setCuisine(e.target.value)}
+  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
+>
+  <option value="">Select Cuisine</option>
+  <option value="African">African</option>
+  <option value="American">American</option>
+  <option value="British">British</option>
+  <option value="Cajun">Cajun</option>
+  <option value="Caribbean">Caribbean</option>
+  <option value="Chinese">Chinese</option>
+  <option value="Eastern European">Eastern European</option>
+  <option value="European">European</option>
+  <option value="French">French</option>
+  <option value="German">German</option>
+  <option value="Greek">Greek</option>
+  <option value="Indian">Indian</option>
+  <option value="Irish">Irish</option>
+  <option value="Italian">Italian</option>
+  <option value="Japanese">Japanese</option>
+  <option value="Jewish">Jewish</option>
+  <option value="Korean">Korean</option>
+  <option value="Latin American">Latin American</option>
+  <option value="Mediterranean">Mediterranean</option>
+  <option value="Mexican">Mexican</option>
+  <option value="Middle Eastern">Middle Eastern</option>
+  <option value="Nordic">Nordic</option>
+  <option value="Southern">Southern</option>
+  <option value="Spanish">Spanish</option>
+  <option value="Thai">Thai</option>
+  <option value="Vietnamese">Vietnamese</option>
+</select>
+
+<select
+  value={diet}
+  onChange={(e) => setDiet(e.target.value)}
+  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
+>
+  <option value="">Any Diet</option>
+  <option value="vegetarian">Vegetarian</option>
+  <option value="vegan">Vegan</option>
+  <option value="ketogenic">Ketogenic</option>
+</select>
+
+<select
+  value={type}
+  onChange={(e) => setType(e.target.value)}
+  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
+>
+  <option value="">Any Type</option>
+  <option value="main course">Main Course</option>
+  <option value="appetizer">Appetizer</option>
+  <option value="dessert">Dessert</option>
+</select>
+
+
+<div className="mb-4">
+  <label className="flex items-center gap-2 text-sm">
+    <input
+      type="checkbox"
+      checked={useMock}
+      onChange={(e) => setUseMock(e.target.checked)}
+    />
+    Use mock data (for demo)
+  </label>
+</div>
+
+</div>
+
 
             {/* Display Error Message */}
             {error && <p className="text-red-500 text-lg text-center">{error}</p>}
