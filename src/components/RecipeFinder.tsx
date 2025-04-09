@@ -443,42 +443,43 @@ export default function RecipeFinder() {
   </div>
 
   {/* Expanded Content */}
-  {openId === recipe.id && (
-    <div className="flex-1 flex flex-col justify-between">
-      {recipe.ingredients && recipe.ingredients.length > 0 && (
-        <div className="text-sm mt-2 space-y-1 p-4 bg-gray-50 rounded-b-xl">
-          <p className="text-green-700">
-            ✅ You have: {
-              recipe.ingredients.filter(ing =>
-                savedIngredients.includes(ing.toLowerCase())
-              ).join(", ") || "None"
-            }
-          </p>
-          <p className="text-red-600">
-            ❌ You need: {
-              recipe.ingredients.filter(ing =>
-                !savedIngredients.includes(ing.toLowerCase())
-              ).join(", ") || "None"
-            }
-          </p>
-        </div>
-      )}
-
-      <div className="border-t border-gray-200 p-4 space-y-2 mt-auto">
-        <a
-          href={recipe.sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block text-blue-600 hover:underline"
-        >
-          🔗 View Full Recipe
-        </a>
-        <button onClick={() => saveFavorite(recipe)}>
-          ❤️ Save to Favorites
-        </button>
-      </div>
+  <div
+  className={`transition-all duration-300 ease-in-out overflow-hidden ${
+    openId === recipe.id ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+  }`}
+>
+  {recipe.ingredients && recipe.ingredients.length > 0 && (
+    <div className="text-sm mt-2 space-y-1 p-4 bg-gray-50 rounded-b-xl">
+      <p className="text-green-700">
+        ✅ You have: {
+          recipe.ingredients.filter(ing =>
+            savedIngredients.includes(ing.toLowerCase())
+          ).join(", ") || "None"
+        }
+      </p>
+      <p className="text-red-600">
+        ❌ You need: {
+          recipe.ingredients.filter(ing =>
+            !savedIngredients.includes(ing.toLowerCase())
+          ).join(", ") || "None"
+        }
+      </p>
     </div>
   )}
+
+  <div className="border-t border-gray-200 p-4 space-y-2">
+    <a
+      href={recipe.sourceUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block text-blue-600 hover:underline"
+    >
+      🔗 View Full Recipe
+    </a>
+    <button onClick={() => saveFavorite(recipe)}>❤️ Save to Favorites</button>
+  </div>
+</div>
+
 </div>
 
 
