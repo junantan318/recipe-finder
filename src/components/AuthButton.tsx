@@ -1,18 +1,16 @@
 'use client';
 
-import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 
 export default function AuthButton() {
   const { isLoggedIn } = useAuth();
 
   return isLoggedIn ? (
-    <Link href="/profile" className="text-blue-600 hover:underline">
-      Profile
-    </Link>
+    <span className="text-gray-700">Logged in</span>
   ) : (
-    <Link href="/login" className="text-blue-600 hover:underline">
+    <a href="/login" className="text-blue-600 hover:underline">
       Login
-    </Link>
+    </a>
   );
 }
+

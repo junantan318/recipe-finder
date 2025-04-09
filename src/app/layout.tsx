@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
-import AuthButton from "@/components/AuthButton";
 import { AuthProvider } from "@/context/AuthContext";
+import LayoutWrapper from "../components/LayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,18 +28,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          {/* ✅ Top navbar */}
-          <header className="fixed top-0 left-0 w-full z-50 bg-white shadow-md p-4 flex justify-between items-center">
-            <Link href="/" className="text-xl font-bold text-blue-700">
-              Recipe Finder
-            </Link>
-            <AuthButton />
-          </header>
-
-          {/* ✅ Main content area */}
-          <main className="p-4">
-            {children}
-          </main>
+          <LayoutWrapper>{children}</LayoutWrapper>
         </AuthProvider>
       </body>
     </html>

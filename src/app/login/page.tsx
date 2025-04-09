@@ -28,7 +28,12 @@ export default function Login() {
       console.log("🧾 Login response:", data);
   
       if (!res.ok) {
-        setMsg(data.error || "Login failed");
+        // 🔽 Check for invalid credentials
+        if (res.status === 401) {
+          setMsg("Incorrect email or password");
+        } else {
+          setMsg(data.error || "Login failed");
+        }
         return;
       }
   
@@ -42,6 +47,7 @@ export default function Login() {
       setMsg("Something went wrong");
     }
   };
+  
   
   return (
     <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
