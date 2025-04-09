@@ -62,14 +62,22 @@ export async function GET(request: NextRequest) {
       return matchesExclude;
     });
 
-    const formattedRecipes = strictlyFiltered.map(recipe => ({
-      id: recipe.id,
-      title: recipe.name,
-      image: recipe.thumbnail_url || "/fallback.jpg",
-      sourceUrl: recipe.original_video_url || `https://tasty.co/recipe/${recipe.slug}`
-    }));
+    const formattedRecipes = strictlyFiltered.map(recipe => {
+      const ingredients = recipe.sections?.flatMap((section: any) =>
+        section.components?.map((comp: any) => comp.ingredient?.name || comp.raw_text)
+      ) || [];
+    
+      return {
+        id: recipe.id,
+        title: recipe.name,
+        image: recipe.thumbnail_url || "/fallback.jpg",
+        sourceUrl: recipe.original_video_url || `https://tasty.co/recipe/${recipe.slug}`,
+        ingredients, // 👈 Add this
+      };
+    });
+    
 
-    return NextResponse.json({ results: formattedRecipes });
+    return NextResponse.json(formattedRecipes);
   } catch (error: any) {
     console.error("❌ Tasty API Error:", error?.response?.data || error.message);
     return NextResponse.json(

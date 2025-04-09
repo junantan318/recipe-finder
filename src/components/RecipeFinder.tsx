@@ -12,6 +12,7 @@ interface Recipe {
   title: string;
   image: string;
   sourceUrl: string;
+  ingredients: string[];
 }
 
 export default function RecipeFinder() {
@@ -117,18 +118,20 @@ export default function RecipeFinder() {
 
       const data = await response.json();
 
-      if (!data.results || data.results.length === 0) {
+      if (!data || data.length === 0) {
         setError("No recipes found! Try different filters.");
         setRecipes([]);
         return;
       }
-
-      const updatedRecipes = data.results.map((recipe: Recipe) => ({
+      
+      const updatedRecipes = data.map((recipe: Recipe) => ({
         id: recipe.id,
         title: recipe.title,
         image: recipe.image,
         sourceUrl: recipe.sourceUrl,
+        ingredients: recipe.ingredients || [],
       }));
+      
 
       setRecipes(updatedRecipes);
     } catch (error) {
@@ -422,36 +425,63 @@ export default function RecipeFinder() {
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
   {recipes.map((recipe) => (
     <div
-      key={recipe.id}
-      className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer"
-    >
-      <div onClick={() => toggle(recipe.id)}>
-        <img
-          src={recipe.image}
-          alt={recipe.title}
-          className="w-full h-48 object-cover rounded-t-xl"
-        />
-        <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-800 truncate">
-            {recipe.title}
-          </h3>
-        </div>
-      </div>
+  key={recipe.id}
+  className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col"
+>
+  {/* Clickable Header (Image + Title) */}
+  <div onClick={() => toggle(recipe.id)}>
+    <img
+      src={recipe.image}
+      alt={recipe.title}
+      className="w-full h-48 object-cover rounded-t-xl"
+    />
+    <div className="p-4">
+      <h3 className="text-lg font-semibold text-gray-800 truncate">
+        {recipe.title}
+      </h3>
+    </div>
+  </div>
 
-      {openId === recipe.id && (
-        <div className="border-t border-gray-200 p-4 space-y-2">
-          <a
-            href={recipe.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-blue-600 hover:underline"
-          >
-            🔗 View Full Recipe
-          </a>
-          <button onClick={() => saveFavorite(recipe)}>❤️ Save to Favorites</button>
+  {/* Expanded Content */}
+  {openId === recipe.id && (
+    <div className="flex-1 flex flex-col justify-between">
+      {recipe.ingredients && recipe.ingredients.length > 0 && (
+        <div className="text-sm mt-2 space-y-1 p-4 bg-gray-50 rounded-b-xl">
+          <p className="text-green-700">
+            ✅ You have: {
+              recipe.ingredients.filter(ing =>
+                savedIngredients.includes(ing.toLowerCase())
+              ).join(", ") || "None"
+            }
+          </p>
+          <p className="text-red-600">
+            ❌ You need: {
+              recipe.ingredients.filter(ing =>
+                !savedIngredients.includes(ing.toLowerCase())
+              ).join(", ") || "None"
+            }
+          </p>
         </div>
       )}
+
+      <div className="border-t border-gray-200 p-4 space-y-2 mt-auto">
+        <a
+          href={recipe.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-blue-600 hover:underline"
+        >
+          🔗 View Full Recipe
+        </a>
+        <button onClick={() => saveFavorite(recipe)}>
+          ❤️ Save to Favorites
+        </button>
+      </div>
     </div>
+  )}
+</div>
+
+
   ))}
 </div>
 </div>
