@@ -12,9 +12,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const ingredients = body.ingredients;
 
-    if (!ingredients || ingredients.length === 0) {
-      return NextResponse.json({ error: "No ingredients provided" }, { status: 400 });
+    if (!Array.isArray(ingredients) || ingredients.length === 0) {
+      return NextResponse.json({ error: "No valid ingredients provided" }, { status: 400 });
     }
+    
 
     const prompt = `
       I have the following ingredients: ${ingredients.join(", ")}.

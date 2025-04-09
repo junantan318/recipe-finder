@@ -23,16 +23,47 @@ export default function RecipeFinder() {
   const [aiRecipe, setAiRecipe] = useState<string | null>(null); // AI-generated recipe
   const [aiLoading, setAiLoading] = useState(false); // AI loading state
   const [savedIngredients, setSavedIngredients] = useState<string[]>([]);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
   const [exclude, setExclude] = useState("");
   const [diet, setDiet] = useState("");
   const [type, setType] = useState("");
   const [tags, setTags] = useState("");
-  const toggle = (id: string) => {
-    setOpenId(prev => (prev === id ? null : id));
+  const toggle = (recipe: Recipe) => {
+    const isSame = openRecipe?.id === recipe.id;
+    setOpenRecipe(isSame ? null : recipe);
+  
+    if (!isSame) {
+  
+      setTimeout(() => {
+        const el = document.getElementById("expanded-recipe");
+        if (!el) return;
+      
+        const rect = el.getBoundingClientRect();
+        const isOutOfView = rect.top < 0 || rect.bottom > window.innerHeight;
+      
+        if (isOutOfView) {
+          const isMobile = window.innerWidth < 1024;
+      
+          if (isMobile) {
+            el.scrollIntoView({ behavior: "smooth", block: "start" });
+          } else {
+            const scrollOffset = window.pageYOffset + rect.top - window.innerHeight / 3;
+            window.scrollTo({ top: scrollOffset, behavior: "smooth" });
+          }
+        }
+      }, 100);
+      
+    }
   };
 
-
+  const chunkArray = (arr: Recipe[], size: number) => {
+    const chunks = [];
+    for (let i = 0; i < arr.length; i += size) {
+      chunks.push(arr.slice(i, i + size));
+    }
+    return chunks;
+  };
+  
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -422,69 +453,112 @@ export default function RecipeFinder() {
 
             {/* Recipe Results */}
             
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {recipes.map((recipe) => (
-    <div
-  key={recipe.id}
-  className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col"
+{/* 📦 Recipe Grid */}
+<div className="grid grid-cols-1 gap-6">
+  {chunkArray(recipes, 3).map((row, rowIndex) => (
+    <div key={rowIndex}>
+      {/* Row of 3 Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {row.map((recipe) => (
+          <div
+            key={recipe.id}
+            className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col"
+          >
+            <div
+              className="cursor-pointer"
+              onClick={() => toggle(recipe)}
+            >
+              <img
+                src={recipe.image}
+                alt={recipe.title}
+                className="w-full h-48 object-cover rounded-t-xl"
+              />
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-800 truncate">
+                  {recipe.title}
+                </h3>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Insert expanded row below if one of the 3 is open */}
+      {row.some((r) => r.id === openRecipe?.id) && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 mt-4">
+<div
+  id="expanded-recipe"
+  className={`col-span-3 bg-white rounded-xl shadow-lg p-6 border border-blue-200 
+    transition-all duration-500 ease-in-out transform
+    ${openRecipe ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-4"}
+  `}
+  
 >
-  {/* Clickable Header (Image + Title) */}
-  <div onClick={() => toggle(recipe.id)}>
-    <img
-      src={recipe.image}
-      alt={recipe.title}
-      className="w-full h-48 object-cover rounded-t-xl"
-    />
-    <div className="p-4">
-      <h3 className="text-lg font-semibold text-gray-800 truncate">
-        {recipe.title}
-      </h3>
+
+
+
+            <h3 className="text-2xl font-bold mb-4 text-gray-800">
+              {openRecipe?.title}
+            </h3>
+
+            <div className="flex flex-col md:flex-row gap-4">
+              <img
+                src={openRecipe?.image}
+                alt={openRecipe?.title}
+                className="w-full md:w-1/3 h-auto rounded-lg object-cover"
+              />
+              <div className="flex-1 space-y-3">
+                <p className="text-green-700 text-sm">
+                  ✅ You have:{" "}
+                  {openRecipe.ingredients
+                    .filter((ing) =>
+                      savedIngredients.includes(ing.toLowerCase())
+                    )
+                    .join(", ") || "None"}
+                </p>
+                <p className="text-red-600 text-sm">
+                  ❌ You need:{" "}
+                  {openRecipe.ingredients
+                    .filter((ing) =>
+                      !savedIngredients.includes(ing.toLowerCase())
+                    )
+                    .join(", ") || "None"}
+                </p>
+
+                <a
+                  href={openRecipe.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline text-sm"
+                >
+                  🔗 View Full Recipe
+                </a>
+
+                <button
+                  onClick={() => saveFavorite(openRecipe)}
+                  className="text-red-600 hover:text-red-800 text-sm"
+                >
+                  ❤️ Save to Favorites
+                </button>
+
+                <button
+                  onClick={() => setOpenRecipe(null)}
+                  className="text-gray-500 hover:underline text-xs"
+                >
+                  ✖ Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-  </div>
-
-  {/* Expanded Content */}
-  <div
-  className={`transition-all duration-300 ease-in-out overflow-hidden ${
-    openId === recipe.id ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-  }`}
->
-  {recipe.ingredients && recipe.ingredients.length > 0 && (
-    <div className="text-sm mt-2 space-y-1 p-4 bg-gray-50 rounded-b-xl">
-      <p className="text-green-700">
-        ✅ You have: {
-          recipe.ingredients.filter(ing =>
-            savedIngredients.includes(ing.toLowerCase())
-          ).join(", ") || "None"
-        }
-      </p>
-      <p className="text-red-600">
-        ❌ You need: {
-          recipe.ingredients.filter(ing =>
-            !savedIngredients.includes(ing.toLowerCase())
-          ).join(", ") || "None"
-        }
-      </p>
-    </div>
-  )}
-
-  <div className="border-t border-gray-200 p-4 space-y-2">
-    <a
-      href={recipe.sourceUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block text-blue-600 hover:underline"
-    >
-      🔗 View Full Recipe
-    </a>
-    <button onClick={() => saveFavorite(recipe)}>❤️ Save to Favorites</button>
-  </div>
-</div>
-
-</div>
-
-
   ))}
 </div>
+
+
+
+
 </div>
 </div>
 
