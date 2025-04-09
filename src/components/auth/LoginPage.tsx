@@ -1,13 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { LogIn, UserPlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 
-export default function Login() {
+export default function Login({ onClose, onRegisterClick }: { onClose?: () => void; onRegisterClick?: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
@@ -16,7 +15,7 @@ export default function Login() {
 
   const handleLogin = async () => {
     setMsg("Logging in...");
-  
+    
     try {
       const res = await fetch('/api/login', {
         method: 'POST',
@@ -41,7 +40,8 @@ export default function Login() {
       localStorage.setItem('email', email);
       login(); // Update context
       setMsg("✅ Logged in!");
-      router.push('/'); // redirect after full setup
+      if (onClose) onClose();  // ✅ Close drawer
+      router.push('/');
     } catch (err) {
       console.error("Login error:", err);
       setMsg("Something went wrong");
@@ -50,7 +50,7 @@ export default function Login() {
   
   
   return (
-    <div className="min-h-screen bg-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex justify-center p-4 pt-20">
       <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-8 space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-blue-700">Login</h1>
@@ -85,11 +85,18 @@ export default function Login() {
         </button>
 
         <div className="text-center text-sm">
-          Don’t have an account?{' '}
-          <Link href="/register" className="text-blue-600 hover:underline flex items-center justify-center">
-            <UserPlus size={14} className="mr-1" /> Register
-          </Link>
-        </div>
+  Don’t have an account?{' '}
+  <button
+    onClick={() => {
+      if (onClose) onClose();
+      if (onRegisterClick) onRegisterClick();
+    }}
+    className="text-blue-600 hover:underline flex items-center justify-center"
+  >
+    <UserPlus size={14} className="mr-1" /> Register
+  </button>
+</div>
+
       </div>
     </div>
   );

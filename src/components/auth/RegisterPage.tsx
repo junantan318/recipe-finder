@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function Register() {
+export default function Register({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,15 +26,21 @@ export default function Register() {
 
       if (res.ok) {
         setSuccess(true);
-        setMsg('🎉 Registration successful! Redirecting...');
-        setTimeout(() => router.push('/'), 2000);
-      } else {
+        setMsg('🎉 Registration successful!');
+      
+        // 👇 close the drawer after 1.5s
+        setTimeout(() => {
+          if (onClose) onClose();
+          router.push('/');
+        }, 1500);
+      }
+       else {
         setSuccess(false);
         setMsg(data.error || '❌ Something went wrong. Please try again.');
       }
     } catch  {
       setSuccess(false);
-      setMsg('🚨 Network error. Please try again later.');
+      setMsg('Please try again ');
     } finally {
       setLoading(false);
     }
