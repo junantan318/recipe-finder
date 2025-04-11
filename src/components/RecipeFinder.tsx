@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Search, Trash2, PlusCircle, XCircle, Loader, User } from "lucide-react";
-import Image from "next/image";
 import Link from 'next/link';
+import ProfilePage from "@/components/auth/ProfilePage";
+import LoginPage from "@/components/auth/LoginPage";
+import RegisterPage from "@/components/auth/RegisterPage";
+
 
 // ✅ Define a TypeScript interface for recipes
 interface Recipe {
@@ -28,6 +31,10 @@ export default function RecipeFinder() {
   const [type, setType] = useState("");
   const [tags, setTags] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+
   
   // Add useEffect hook to set body and html to fullscreen
   useEffect(() => {
@@ -327,6 +334,64 @@ export default function RecipeFinder() {
   
   return (
     <div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
+      {showProfile && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-end">
+    <div className="bg-white w-[300px] h-full shadow-lg p-6 relative">
+      <button
+        onClick={() => setShowProfile(false)}
+        className="absolute top-4 right-4 text-red-500 font-bold"
+      >
+        ✖
+      </button>
+      <ProfilePage
+        onClose={() => setShowProfile(false)}
+        onSignInClick={() => {
+          setShowProfile(false);
+          setShowLogin(true);
+        }}
+        onRegisterClick={() => {
+          setShowProfile(false);
+          setShowRegister(true);
+        }}
+      />
+    </div>
+  </div>
+)}
+
+{showLogin && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-end">
+    <div className="bg-white w-full max-w-md h-full shadow-lg p-6 relative">
+      <button
+        onClick={() => setShowLogin(false)}
+        className="absolute top-4 right-4 text-red-500 font-bold"
+      >
+        ✖
+      </button>
+      <LoginPage
+        onClose={() => setShowLogin(false)}
+        onRegisterClick={() => {
+          setShowLogin(false);
+          setShowRegister(true);
+        }}
+      />
+    </div>
+  </div>
+)}
+
+{showRegister && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-end">
+    <div className="bg-white w-full max-w-md h-full shadow-lg p-6 relative">
+      <button
+        onClick={() => setShowRegister(false)}
+        className="absolute top-4 right-4 text-red-500 font-bold"
+      >
+        ✖
+      </button>
+      <RegisterPage onClose={() => setShowRegister(false)} />
+    </div>
+  </div>
+)}
+
       {/* Top Navigation Bar */}
       <div className="w-full bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
         <div className="flex items-center space-x-4">
@@ -346,6 +411,13 @@ export default function RecipeFinder() {
         >
           ❤️ My Favorites
         </Link>
+
+          <button
+    onClick={() => setShowProfile(true)}
+    className="inline-flex items-center bg-white text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+  >
+    👤 Profile
+  </button>
       </div>
 
       <div className="flex flex-1 w-full overflow-hidden">
