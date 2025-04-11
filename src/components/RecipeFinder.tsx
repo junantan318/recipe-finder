@@ -34,6 +34,9 @@ export default function RecipeFinder() {
   const [showProfile, setShowProfile] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showingFavorites, setShowingFavorites] = useState(false);
+  const [favorites, setFavorites] = useState<Recipe[]>([]);
+
 
   
   // Add useEffect hook to set body and html to fullscreen
@@ -91,13 +94,14 @@ export default function RecipeFinder() {
     }
   };
 
-  const chunkArray = (arr: Recipe[], size: number) => {
-    const chunks = [];
-    for (let i = 0; i < arr.length; i += size) {
-      chunks.push(arr.slice(i, i + size));
+  const handleSaveFavorite = () => {
+    if (!openRecipe?.ingredients?.length) {
+      alert("⚠️ Please open the recipe first to load ingredients.");
+      return;
     }
-    return chunks;
+    saveFavorite(openRecipe);
   };
+  
   
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -122,23 +126,40 @@ export default function RecipeFinder() {
       });
   }, []);
   
-  const saveFavorite = async (recipe) => {
+  const saveFavorite = async (recipe: Recipe) => {
+    if (!recipe.ingredients || recipe.ingredients.length === 0) {
+      console.warn("Skipping save — recipe has no ingredients.");
+      return;
+    }
+  
     const token = localStorage.getItem("token");
+  
     const res = await fetch("/api/favorites", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(recipe)
+      body: JSON.stringify({
+        id: recipe.id,
+      }),      
     });
   
     if (res.ok) {
       alert("✅ Recipe saved to favorites!");
+  
+      if (showingFavorites) {
+        setFavorites((prev) => {
+          const alreadyExists = prev.some((fav) => fav.id === recipe.id);
+          return alreadyExists ? prev : [...prev, recipe];
+        });
+      }
     } else {
       alert("❌ Failed to save. Please try again.");
     }
   };
+  
+  
   
   // ✅ Fetch Recipes from API
   const fetchRecipes = async () => {
@@ -331,6 +352,29 @@ export default function RecipeFinder() {
       setAiLoading(false);
     }
   };
+
+  const removeFavorite = async (recipeId: string) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("/api/favorites", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ id: recipeId })
+      });
+  
+      if (res.ok) {
+        setFavorites((prev) => prev.filter((fav) => fav.id !== recipeId));
+      } else {
+        console.error("❌ Failed to remove favorite.");
+      }
+    } catch (err) {
+      console.error("🚨 Remove error:", err);
+    }
+  };
+  
   
   return (
     <div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
@@ -405,12 +449,36 @@ export default function RecipeFinder() {
           </button>
           <h1 className="text-2xl font-bold">🍽️ Recipe Finder</h1>
         </div>
-        <Link
-          href="/favorites"
-          className="inline-flex items-center bg-white text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
-        >
-          ❤️ My Favorites
-        </Link>
+
+        <button
+onClick={async () => {
+  setShowingFavorites(true);
+  const token = localStorage.getItem("token");
+  const res = await fetch("/api/favorites", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.ok) {
+    const result = await res.json();
+    const data = Array.isArray(result) ? result : result.favorites || [];
+    
+    const recipes = await Promise.all(
+      data.map(async (fav: any) => {
+        const res = await fetch(`/api/recipes?id=${fav.id}`);
+        return await res.json(); // includes full recipe with ingredients
+      })
+    );
+    setFavorites(recipes);
+    
+
+  } else {
+    console.error("Failed to load favorites.");
+  }
+}}
+
+  className="inline-flex items-center bg-white text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+>
+  ❤️ My Favorites
+</button>
 
           <button
     onClick={() => setShowProfile(true)}
@@ -511,6 +579,15 @@ export default function RecipeFinder() {
         </div>
 
         {/* Main Content */}
+        {showingFavorites && (
+  <button
+    onClick={() => setShowingFavorites(false)}
+    className="mb-4 bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
+  >
+    ← Back to Search Results
+  </button>
+)}
+
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Filters Section - Now full width and more compact */}
           <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
@@ -581,38 +658,38 @@ export default function RecipeFinder() {
             )}
 
             {/* Recipe Results - Now using a more efficient grid layout */}
-            {recipes.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {recipes.map((recipe) => (
-                  <div
-                    key={recipe.id}
-                    className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden border border-gray-200"
-                  >
-                    <div
-                      className="cursor-pointer h-full flex flex-col"
-                      onClick={() => toggle(recipe)}
-                    >
-                      <div className="h-48 overflow-hidden">
-                        <img
-                          src={recipe.image}
-                          alt={recipe.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="p-3 flex-1 flex flex-col">
-                        <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
-                          {recipe.title}
-                        </h3>
-                        <div className="mt-2 text-xs text-gray-500">
-                          {recipe.ingredients.length} ingredients
-                        </div>
-                        <button className="mt-auto text-sm text-blue-600">View Details →</button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {(showingFavorites ? favorites : recipes).length > 0 && (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    {(showingFavorites ? favorites : recipes).map((recipe) => (
+      <div
+        key={recipe.id}
+        className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden border border-gray-200"
+      >
+        <div
+          className="cursor-pointer h-full flex flex-col"
+          onClick={() => toggle(recipe)}
+        >
+          <div className="h-48 overflow-hidden">
+            <img
+              src={recipe.image}
+              alt={recipe.title}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="p-3 flex-1 flex flex-col">
+            <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
+              {recipe.title}
+            </h3>
+            <div className="mt-2 text-xs text-gray-500">
+              {recipe.ingredients?.length ?? 0} ingredients
+            </div>
+            <button className="mt-auto text-sm text-blue-600">View Details →</button>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
 
             {/* Empty state for when no recipes have been searched yet */}
             {recipes.length === 0 && !loading && !error && (
@@ -713,12 +790,21 @@ export default function RecipeFinder() {
                     >
                       View Full Recipe
                     </a>
-                    <button
-                      onClick={() => saveFavorite(openRecipe)}
-                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-                    >
-                      Save to Favorites
-                    </button>
+                    {showingFavorites ? (
+  <button
+  onClick={() => removeFavorite(openRecipe.id)}
+    className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
+  >
+    💔 Remove from Favorites
+  </button>
+) : (
+  <button onClick={handleSaveFavorite}
+    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+  >
+    ❤️ Save to Favorites
+  </button>
+)}
+
                   </div>
                 </div>
               </div>

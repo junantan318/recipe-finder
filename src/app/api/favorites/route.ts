@@ -26,14 +26,25 @@ export async function POST(req: NextRequest) {
   const user = verifyToken(token);
   const body = await req.json();
 
+  // Ensure ingredients always exist
+  const favoriteToAdd = {
+    id: body.id,
+    title: body.title,
+    image: body.image,
+    sourceUrl: body.sourceUrl,
+    ingredients: Array.isArray(body.ingredients) ? body.ingredients : [],
+  };
+
   const updatedUser = await User.findOneAndUpdate(
     { email: user.email },
-    { $addToSet: { favorites: body } }, // prevent duplicates
+    { $addToSet: { favorites: favoriteToAdd } },
     { new: true }
   );
+  console.log("🔄 Saving favorite with:", favoriteToAdd);
 
   return NextResponse.json({ favorites: updatedUser.favorites });
 }
+
 
 // ✅ DELETE: remove a favorite by recipe ID
 export async function DELETE(req: NextRequest) {
