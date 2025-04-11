@@ -1,10 +1,9 @@
 "use client";
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Search, Trash2, PlusCircle, XCircle, Loader, User } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
-
 
 // ✅ Define a TypeScript interface for recipes
 interface Recipe {
@@ -28,12 +27,42 @@ export default function RecipeFinder() {
   const [diet, setDiet] = useState("");
   const [type, setType] = useState("");
   const [tags, setTags] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
+  // Add useEffect hook to set body and html to fullscreen
+  useEffect(() => {
+    // Remove default margins and padding from body and html
+    document.body.style.margin = '0';
+    document.body.style.padding = '0';
+    document.body.style.overflow = 'hidden';
+    document.body.style.width = '100vw';
+    document.body.style.height = '100vh';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.padding = '0';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.width = '100vw';
+    document.documentElement.style.height = '100vh';
+    
+    // Clean up function
+    return () => {
+      document.body.style.margin = '';
+      document.body.style.padding = '';
+      document.body.style.overflow = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.documentElement.style.margin = '';
+      document.documentElement.style.padding = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.width = '';
+      document.documentElement.style.height = '';
+    };
+  }, []);
+  
   const toggle = (recipe: Recipe) => {
     const isSame = openRecipe?.id === recipe.id;
     setOpenRecipe(isSame ? null : recipe);
   
     if (!isSame) {
-  
       setTimeout(() => {
         const el = document.getElementById("expanded-recipe");
         if (!el) return;
@@ -52,7 +81,6 @@ export default function RecipeFinder() {
           }
         }
       }, 100);
-      
     }
   };
 
@@ -87,10 +115,6 @@ export default function RecipeFinder() {
       });
   }, []);
   
-  
-
-  
-  
   const saveFavorite = async (recipe) => {
     const token = localStorage.getItem("token");
     const res = await fetch("/api/favorites", {
@@ -109,7 +133,6 @@ export default function RecipeFinder() {
     }
   };
   
-
   // ✅ Fetch Recipes from API
   const fetchRecipes = async () => {
     if (
@@ -129,7 +152,6 @@ export default function RecipeFinder() {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL;
     const path = "/api/recipes";
     
-
     const queryParams = new URLSearchParams({
       ...(savedIngredients.length && { ingredient: savedIngredients.join(",") }),
       ...(diet && { diet }),
@@ -163,7 +185,6 @@ export default function RecipeFinder() {
         ingredients: recipe.ingredients || [],
       }));
       
-
       setRecipes(updatedRecipes);
     } catch (error) {
       console.error("🚨 Fetch Error:", error);
@@ -217,7 +238,6 @@ export default function RecipeFinder() {
     }
   };
   
-
   // ✅ Remove a single ingredient
   const removeIngredient = async (ingredient: string) => {
     // Update local state
@@ -247,7 +267,6 @@ export default function RecipeFinder() {
     }
   };
   
-
   // ✅ Clear all ingredients
   const clearIngredients = async () => {
     try {
@@ -270,8 +289,6 @@ export default function RecipeFinder() {
     }
   };
   
-  
-
   // ✅ Function to ask AI (Cohere) for a recommended recipe
   const askAiForRecipe = async () => {
     if (savedIngredients.length === 0) {
@@ -279,7 +296,6 @@ export default function RecipeFinder() {
       return;
     }
     
-  
     setAiLoading(true);
     setAiRecipe(null);
   
@@ -310,259 +326,334 @@ export default function RecipeFinder() {
   };
   
   return (
-  <div className="flex flex-col min-h-screen pt-[72px]">  {/* push content below navbar */}
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar for Saved Ingredients */}
-        <div className="w-80 bg-white border-r border-gray-200 p-6 space-y-6 overflow-y-auto">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Saved Ingredients</h3>
-
-          {savedIngredients.length === 0 ? (
-            <p className="text-gray-500 text-center">No ingredients saved</p>
-          ) : (
-            <>
-              <div className="space-y-3">
-                {savedIngredients.map((ingredient) => (
-                  <div 
-                    key={ingredient} 
-                    className="flex justify-between items-center bg-blue-50 p-3 rounded-lg shadow-sm hover:bg-blue-100 transition-colors"
-                  >
-                    <span className="text-gray-700 flex-grow">{ingredient}</span>
-                    <button 
-                      onClick={() => removeIngredient(ingredient)} 
-                      className="text-red-500 hover:text-red-700 ml-2"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Clear All Button */}
-              <button
-                onClick={clearIngredients}
-                className="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
-              >
-                <XCircle className="w-5 h-5" />
-                <span>Clear All</span>
-              </button>
-            </>
-          )}
-          <hr className="my-4 border-gray-300" />
-
-<Link
-  href="/favorites"
-  className="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-center transition-colors"
->
-  ❤️ View Favorites
-</Link>
-
-
-          {/* AI Recommendation Section */}
-          <button
-            onClick={askAiForRecipe}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg mt-4 flex items-center justify-center space-x-2 transition-colors"
+    <div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
+      {/* Top Navigation Bar */}
+      <div className="w-full bg-blue-600 text-white px-6 py-4 flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="md:hidden text-white focus:outline-none"
           >
-            {aiLoading ? <Loader className="w-5 h-5 animate-spin" /> : "AI Recommend"}
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </button>
-
-          {/* Display AI Recommendation */}
-          {aiRecipe && (
-            <div className="bg-blue-50 p-4 rounded-lg shadow-md mt-4">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">🤖 AI Suggested Recipe:</h3>
-              <p className="text-gray-700 whitespace-pre-line">{aiRecipe}</p>
-            </div>
-          )}
+          <h1 className="text-2xl font-bold">🍽️ Recipe Finder</h1>
         </div>
+        <Link
+          href="/favorites"
+          className="inline-flex items-center bg-white text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
+        >
+          ❤️ My Favorites
+        </Link>
+      </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-8 bg-blue-50 overflow-y-auto">
-          <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">🍽️ Recipe Finder</h2>
+      <div className="flex flex-1 w-full overflow-hidden">
+        {/* Sidebar for Saved Ingredients - Now collapsible on mobile */}
+        <div className={`${sidebarOpen ? 'block' : 'hidden'} md:block w-full md:w-72 lg:w-80 bg-gray-100 border-r border-gray-200 overflow-hidden flex flex-col h-full`}>
+          <div className="p-4 flex flex-col h-full overflow-hidden">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">My Ingredients</h3>
 
-            {/* Search Input + Add Ingredient Button */}
-            <div className="flex gap-2 mb-6">
+            {/* Ingredient Input + Add Button */}
+            <div className="flex gap-2 mb-4">
               <input
                 type="text"
-                placeholder="Enter an ingredient..."
+                placeholder="Add ingredient..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") addIngredient();
                 }}
-                className="flex-1 border border-gray-300 p-3 rounded-lg text-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="flex-1 border border-gray-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
               <button 
                 onClick={addIngredient} 
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg flex items-center space-x-2 transition-colors"
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center justify-center transition-colors"
               >
-                <PlusCircle className="w-5 h-5" /> 
-                <span className="hidden md:inline">Add</span>
-              </button>
-              <button 
-                onClick={fetchRecipes} 
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center space-x-2 transition-colors"
-              >
-                <Search className="w-5 h-5" />
-                <span className="hidden md:inline">{loading ? "Searching..." : "Search"}</span>
+                <PlusCircle className="w-5 h-5" />
               </button>
             </div>
-            {/* Filters Section */}
-<div className="w-full flex flex-col md:flex-row gap-2 mb-4">
-<select
-  value={diet}
-  onChange={(e) => setDiet(e.target.value)}
-  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
->
-  <option value="">Any Diet</option>
-  <option value="vegetarian">Vegetarian</option>
-  <option value="vegan">Vegan</option>
-  <option value="gluten_free">Gluten Free</option>
-</select>
 
-<select
-  value={type}
-  onChange={(e) => setType(e.target.value)}
-  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
->
-  <option value="">Any Type</option>
-  <option value="breakfast">Breakfast</option>
-  <option value="lunch">Lunch</option>
-  <option value="dinner">Dinner</option>
-  <option value="snack">Snack</option>
-  <option value="dessert">Dessert</option>
-</select>
+            <div className="flex-1 overflow-y-auto">
+              {savedIngredients.length === 0 ? (
+                <p className="text-gray-500 text-center bg-white p-4 rounded-lg shadow-sm">No ingredients yet</p>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    {savedIngredients.map((ingredient) => (
+                      <div 
+                        key={ingredient} 
+                        className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm hover:bg-blue-50 transition-colors"
+                      >
+                        <span className="text-gray-700 flex-grow">{ingredient}</span>
+                        <button 
+                          onClick={() => removeIngredient(ingredient)} 
+                          className="text-red-500 hover:text-red-700 ml-2"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
 
-<select
-  value={tags}
-  onChange={(e) => setTags(e.target.value)}
-  className="flex-1 border border-gray-300 p-2 rounded-lg text-sm"
->
-  <option value="">Any Theme</option>
-  <option value="under_30_minutes">Under 30 Minutes</option>
-  <option value="easy">Easy</option>
-  <option value="healthy">Healthy</option>
-</select>
+            {savedIngredients.length > 0 && (
+              <button
+                onClick={clearIngredients}
+                className="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-2 mt-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
+              >
+                <XCircle className="w-4 h-4" />
+                <span>Clear All</span>
+              </button>
+            )}
 
-<ExcludeDropdown />
+            <hr className="my-4 border-gray-300" />
 
-</div>
-
-            {/* Display Error Message */}
-            {error && <p className="text-red-500 text-lg text-center">{error}</p>}
-
-            {/* Recipe Results */}
-            
-{/* 📦 Recipe Grid */}
-<div className="grid grid-cols-1 gap-6">
-  {chunkArray(recipes, 3).map((row, rowIndex) => (
-    <div key={rowIndex}>
-      {/* Row of 3 Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {row.map((recipe) => (
-          <div
-            key={recipe.id}
-            className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col"
-          >
-            <div
-              className="cursor-pointer"
-              onClick={() => toggle(recipe)}
+            {/* AI Recommendation Button */}
+            <button
+              onClick={askAiForRecipe}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg mt-2 flex items-center justify-center space-x-2 transition-colors"
             >
-              <img
-                src={recipe.image}
-                alt={recipe.title}
-                className="w-full h-48 object-cover rounded-t-xl"
-              />
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-800 truncate">
-                  {recipe.title}
-                </h3>
+              {aiLoading ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  <span>Generating...</span>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium">🤖 AI Recipe Suggestion</span>
+                </>
+              )}
+            </button>
+
+            {/* Display AI Recommendation */}
+            {aiRecipe && (
+              <div className="bg-white p-4 rounded-lg shadow-md mt-4 border-l-4 border-purple-500 overflow-y-auto max-h-64">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">🤖 AI Suggested Recipe:</h3>
+                <p className="text-gray-700 whitespace-pre-line text-sm">{aiRecipe}</p>
               </div>
-            </div>
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Filters Section - Now full width and more compact */}
+          <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <select
+                value={diet}
+                onChange={(e) => setDiet(e.target.value)}
+                className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+              >
+                <option value="">Any Diet</option>
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="gluten_free">Gluten Free</option>
+              </select>
+
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+              >
+                <option value="">Any Type</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snack">Snack</option>
+                <option value="dessert">Dessert</option>
+              </select>
+
+              <select
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+              >
+                <option value="">Any Theme</option>
+                <option value="under_30_minutes">Under 30 Minutes</option>
+                <option value="easy">Easy</option>
+                <option value="healthy">Healthy</option>
+              </select>
+
+              <ExcludeDropdown />
+            </div>
+            
+            <button 
+              onClick={fetchRecipes} 
+              className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
+            >
+              {loading ? (
+                <>
+                  <Loader className="w-5 h-5 animate-spin" />
+                  <span>Searching...</span>
+                </>
+              ) : (
+                <>
+                  <Search className="w-5 h-5" />
+                  <span className="font-medium">Find Recipes</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Main scrollable content area */}
+          <div className="flex-1 overflow-y-auto p-4">
+            {/* Display Error Message */}
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
+                <p className="text-red-700">{error}</p>
+              </div>
+            )}
+
+            {/* Recipe Results - Now using a more efficient grid layout */}
+            {recipes.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {recipes.map((recipe) => (
+                  <div
+                    key={recipe.id}
+                    className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden border border-gray-200"
+                  >
+                    <div
+                      className="cursor-pointer h-full flex flex-col"
+                      onClick={() => toggle(recipe)}
+                    >
+                      <div className="h-48 overflow-hidden">
+                        <img
+                          src={recipe.image}
+                          alt={recipe.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="p-3 flex-1 flex flex-col">
+                        <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
+                          {recipe.title}
+                        </h3>
+                        <div className="mt-2 text-xs text-gray-500">
+                          {recipe.ingredients.length} ingredients
+                        </div>
+                        <button className="mt-auto text-sm text-blue-600">View Details →</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty state for when no recipes have been searched yet */}
+            {recipes.length === 0 && !loading && !error && (
+              <div className="flex flex-col items-center justify-center h-64 text-center">
+                <div className="text-6xl mb-4">🍳</div>
+                <h3 className="text-xl font-semibold text-gray-700 mb-2">Ready to find recipes?</h3>
+                <p className="text-gray-500 max-w-md">
+                  Add ingredients from your kitchen and click "Find Recipes" to discover meals you can make right now!
+                </p>
+              </div>
+            )}
+            
+            {/* Loading state */}
+            {loading && (
+              <div className="flex justify-center items-center h-64">
+                <div className="flex flex-col items-center">
+                  <Loader className="w-10 h-10 text-blue-600 animate-spin" />
+                  <p className="mt-4 text-gray-600">Searching for perfect recipes...</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Insert expanded row below if one of the 3 is open */}
-      {row.some((r) => r.id === openRecipe?.id) && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 mt-4">
-<div
-  id="expanded-recipe"
-  className={`col-span-3 bg-white rounded-xl shadow-lg p-6 border border-blue-200 
-    transition-all duration-500 ease-in-out transform
-    ${openRecipe ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-4"}
-  `}
-  
->
-
-
-
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">
-              {openRecipe?.title}
-            </h3>
-
-            <div className="flex flex-col md:flex-row gap-4">
+      {/* Expanded Recipe Details */}
+      {openRecipe && (
+        <div 
+          id="expanded-recipe"
+          className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setOpenRecipe(null)}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-3xl w-full max-h-screen overflow-y-auto shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative h-64 w-full">
               <img
-                src={openRecipe?.image}
-                alt={openRecipe?.title}
-                className="w-full md:w-1/3 h-auto rounded-lg object-cover"
+                src={openRecipe.image}
+                alt={openRecipe.title}
+                className="w-full h-full object-cover"
               />
-              <div className="flex-1 space-y-3">
-                <p className="text-green-700 text-sm">
-                  ✅ You have:{" "}
-                  {openRecipe.ingredients
-                    .filter((ing) =>
-                      savedIngredients.includes(ing.toLowerCase())
-                    )
-                    .join(", ") || "None"}
-                </p>
-                <p className="text-red-600 text-sm">
-                  ❌ You need:{" "}
-                  {openRecipe.ingredients
-                    .filter((ing) =>
-                      !savedIngredients.includes(ing.toLowerCase())
-                    )
-                    .join(", ") || "None"}
-                </p>
-
-                <a
-                  href={openRecipe.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-sm"
-                >
-                  🔗 View Full Recipe
-                </a>
-
-                <button
-                  onClick={() => saveFavorite(openRecipe)}
-                  className="text-red-600 hover:text-red-800 text-sm"
-                >
-                  ❤️ Save to Favorites
-                </button>
-
-                <button
-                  onClick={() => setOpenRecipe(null)}
-                  className="text-gray-500 hover:underline text-xs"
-                >
-                  ✖ Close
-                </button>
+              <button 
+                onClick={() => setOpenRecipe(null)}
+                className="absolute top-3 right-3 bg-black bg-opacity-50 text-white rounded-full p-2"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <h3 className="text-2xl font-bold mb-4 text-gray-800">
+                {openRecipe.title}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-lg text-gray-700">Ingredients</h4>
+                  <div className="space-y-2">
+                    {openRecipe.ingredients.map((ing, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        {savedIngredients.includes(ing.toLowerCase()) ? (
+                          <span className="text-green-500">✓</span>
+                        ) : (
+                          <span className="text-red-500">✗</span>
+                        )}
+                        <span>{ing}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-lg text-gray-700">Summary</h4>
+                  <p className="text-green-700 text-sm">
+                    ✅ You have:{" "}
+                    {openRecipe.ingredients
+                      .filter((ing) =>
+                        savedIngredients.includes(ing.toLowerCase())
+                      )
+                      .join(", ") || "None"}
+                  </p>
+                  <p className="text-red-600 text-sm">
+                    ❌ You need:{" "}
+                    {openRecipe.ingredients
+                      .filter((ing) =>
+                        !savedIngredients.includes(ing.toLowerCase())
+                      )
+                      .join(", ") || "None"}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <a
+                      href={openRecipe.sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                    >
+                      View Full Recipe
+                    </a>
+                    <button
+                      onClick={() => saveFavorite(openRecipe)}
+                      className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                    >
+                      Save to Favorites
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
     </div>
-  ))}
-</div>
-
-
-
-
-</div>
-</div>
-
-        </div>
-      </div>
   );
 }
