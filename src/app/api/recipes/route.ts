@@ -18,9 +18,10 @@ export async function GET(request: NextRequest) {
       const res = await axios.get(detailUrl, { headers });
       const recipe = res.data;
 
-      const ingredients =
-        recipe.sections?.flatMap((section: any) =>
-          section.components?.map((comp: any) => comp.ingredient?.name || comp.raw_text)
+      const ingredients = recipe.sections?.flatMap((section: { components: any[] }) =>
+        section.components?.map((comp: { ingredient?: { name?: string }, raw_text: string }) =>
+          comp.ingredient?.name || comp.raw_text
+        )        
         ) || [];
 
       return NextResponse.json({
