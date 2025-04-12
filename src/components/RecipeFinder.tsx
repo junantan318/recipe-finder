@@ -461,7 +461,7 @@ onClick={async () => {
     const data = Array.isArray(result) ? result : result.favorites || [];
     
     const recipes = await Promise.all(
-      data.map(async (fav: any) => {
+      data.map(async (fav: { id: string }) => { 
         const res = await fetch(`/api/recipes?id=${fav.id}`);
         return await res.json(); // includes full recipe with ingredients
       })
