@@ -11,17 +11,20 @@ export async function GET(request: NextRequest) {
     "X-RapidAPI-Host": "tasty.p.rapidapi.com",
   };
 
-  // ✅ If we're fetching one recipe by ID
+  // ✅ Fetch a single recipe by ID
   if (id) {
     const detailUrl = `https://tasty.p.rapidapi.com/recipes/get-more-info?id=${id}`;
     try {
       const res = await axios.get(detailUrl, { headers });
       const recipe = res.data;
 
-      const ingredients = recipe.sections?.flatMap((section: { components: any[] }) =>
-        section.components?.map((comp: { ingredient?: { name?: string }, raw_text: string }) =>
-          comp.ingredient?.name || comp.raw_text
-        )        
+      const ingredients =
+        recipe.sections?.flatMap(
+          (section: { components: { ingredient?: { name?: string }; raw_text?: string }[] }) =>
+            section.components?.map(
+              (comp: { ingredient?: { name?: string }; raw_text?: string }) =>
+                comp.ingredient?.name || comp.raw_text || ""
+            )
         ) || [];
 
       return NextResponse.json({
@@ -31,13 +34,14 @@ export async function GET(request: NextRequest) {
         sourceUrl: recipe.original_video_url || `https://tasty.co/recipe/${recipe.slug}`,
         ingredients,
       });
-    } catch (err: any) {
-      console.error("❌ Failed to fetch recipe by ID:", err?.response?.data || err.message);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("❌ Failed to fetch recipe by ID:", error.message);
       return NextResponse.json({ error: "Failed to fetch recipe by ID" }, { status: 500 });
     }
   }
 
-  // ✅ Default: recipe search (your original logic)
+  // ✅ Default search logic
   const ingredientParam = searchParams.get("ingredient");
   const excludeParam = searchParams.get("exclude");
   const dietParam = searchParams.get("diet");
@@ -48,7 +52,7 @@ export async function GET(request: NextRequest) {
   const excludeIngredient = excludeParam?.toLowerCase() || "";
 
   const apiUrl = "https://tasty.p.rapidapi.com/recipes/list";
-  const params: Record<string, any> = {
+  const params: Record<string, string | number> = {
     from: 0,
     size: 40,
   };
@@ -78,20 +82,21 @@ export async function GET(request: NextRequest) {
     const response = await axios.get(apiUrl, { params, headers });
     const results = response.data.results || [];
 
-    const strictlyFiltered = results.filter(recipe => {
+    const strictlyFiltered = results.filter((recipe: any) => {
       const description = recipe.description?.toLowerCase() || "";
       return excludeIngredient ? !description.includes(excludeIngredient) : true;
     });
 
-    const formattedRecipes = strictlyFiltered.map((recipe: any) => {
-      const ingredients = recipe.sections?.flatMap(
-        (section: { components?: { ingredient?: { name?: string }; raw_text?: string }[] }) =>
-          section.components?.map(
-            (comp: { ingredient?: { name?: string }; raw_text?: string }) =>
-              comp.ingredient?.name || comp.raw_text || ""
-          )
-      ) || [];
-    
+    const formattedRecipes = strictlyFiltered.map((recipe: Record<string, any>) => {
+      const ingredients =
+        recipe.sections?.flatMap(
+          (section: { components?: { ingredient?: { name?: string }; raw_text?: string }[] }) =>
+            section.components?.map(
+              (comp: { ingredient?: { name?: string }; raw_text?: string }) =>
+                comp.ingredient?.name || comp.raw_text || ""
+            )
+        ) || [];
+
       return {
         id: recipe.id,
         title: recipe.name,
@@ -100,13 +105,13 @@ export async function GET(request: NextRequest) {
         ingredients,
       };
     });
-    
 
     return NextResponse.json(formattedRecipes);
-  } catch (error: any) {
-    console.error("❌ Tasty API Error:", error?.response?.data || error.message);
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("❌ Tasty API Error:", err.message);
     return NextResponse.json(
-      { error: "Failed to fetch recipes", details: error.message },
+      { error: "Failed to fetch recipes", details: err.message },
       { status: 500 }
     );
   }
