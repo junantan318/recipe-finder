@@ -21,7 +21,11 @@ function verifyToken(token: string): DecodedToken {
 export async function GET(req: NextRequest) {
   await dbConnect();
   const token = req.headers.get('authorization')?.split(' ')[1];
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const user = verifyToken(token);
+  
 
   const foundUser = await User.findOne({ email: user.email });
   return NextResponse.json({ favorites: foundUser.favorites || [] });
@@ -31,7 +35,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   await dbConnect();
   const token = req.headers.get('authorization')?.split(' ')[1];
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const user = verifyToken(token);
+  
   const body = await req.json();
 
   // Ensure ingredients always exist
@@ -58,7 +66,11 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   await dbConnect();
   const token = req.headers.get('authorization')?.split(' ')[1];
+  if (!token) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   const user = verifyToken(token);
+  
   const body = await req.json();
 
   const updatedUser = await User.findOneAndUpdate(
