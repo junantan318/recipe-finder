@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Trash2, PlusCircle, XCircle, Loader, User } from "lucide-react";
+import { Search, Trash2, PlusCircle, XCircle, Loader } from "lucide-react";
 import ProfilePage from "@/components/auth/ProfilePage";
 import LoginPage from "@/components/auth/LoginPage";
 import RegisterPage from "@/components/auth/RegisterPage";

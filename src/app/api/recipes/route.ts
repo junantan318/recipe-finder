@@ -83,11 +83,15 @@ export async function GET(request: NextRequest) {
       return excludeIngredient ? !description.includes(excludeIngredient) : true;
     });
 
-    const formattedRecipes = strictlyFiltered.map(recipe => {
-      const ingredients = recipe.sections?.flatMap((section: any) =>
-        section.components?.map((comp: any) => comp.ingredient?.name || comp.raw_text)
+    const formattedRecipes = strictlyFiltered.map((recipe: any) => {
+      const ingredients = recipe.sections?.flatMap(
+        (section: { components?: { ingredient?: { name?: string }; raw_text?: string }[] }) =>
+          section.components?.map(
+            (comp: { ingredient?: { name?: string }; raw_text?: string }) =>
+              comp.ingredient?.name || comp.raw_text || ""
+          )
       ) || [];
-
+    
       return {
         id: recipe.id,
         title: recipe.name,
@@ -96,6 +100,7 @@ export async function GET(request: NextRequest) {
         ingredients,
       };
     });
+    
 
     return NextResponse.json(formattedRecipes);
   } catch (error: any) {

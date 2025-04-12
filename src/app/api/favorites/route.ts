@@ -5,9 +5,17 @@ import User from '@/models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
-function verifyToken(token: string): any {
-  return jwt.verify(token, JWT_SECRET);
+interface DecodedToken {
+  email: string;
+  iat?: number;
+  exp?: number;
 }
+
+
+function verifyToken(token: string): DecodedToken {
+  return jwt.verify(token, JWT_SECRET) as DecodedToken;
+}
+
 
 // ✅ GET: fetch all favorites
 export async function GET(req: NextRequest) {
