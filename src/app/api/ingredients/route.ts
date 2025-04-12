@@ -28,7 +28,7 @@ export async function PUT(request: NextRequest) {
   console.log("🧼 Deleted:", result.deletedCount);
 
   if (body.ingredients.length > 0) {
-    const newDocs = body.ingredients.map((name) => ({ name }));
+    const newDocs = body.ingredients.map((name: string) => ({ name }));
     await Ingredient.insertMany(newDocs);
   }
 
