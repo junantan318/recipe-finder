@@ -696,8 +696,8 @@ onClick={async () => {
                 <div className="text-6xl mb-4">🍳</div>
                 <h3 className="text-xl font-semibold text-gray-700 mb-2">Ready to find recipes?</h3>
                 <p className="text-gray-500 max-w-md">
-                  Add ingredients from your kitchen and click 'Find Recipes' to discover meals you can make right now!
-                </p>
+        Add ingredients from your kitchen and click &#39;Find Recipes&#39; to discover meals you can make right now!
+      </p>
               </div>
             )}
             
