@@ -82,12 +82,24 @@ export async function GET(request: NextRequest) {
     const response = await axios.get(apiUrl, { params, headers });
     const results = response.data.results || [];
 
-    const strictlyFiltered = results.filter((recipe: any) => {
-      const description = recipe.description?.toLowerCase() || "";
+    const strictlyFiltered = results.filter((recipe: { description?: string }) => {
+      const description = recipe.description?.toLowerCase() || "";    
       return excludeIngredient ? !description.includes(excludeIngredient) : true;
     });
 
-    const formattedRecipes = strictlyFiltered.map((recipe: Record<string, any>) => {
+    const formattedRecipes = strictlyFiltered.map((recipe: {
+      id: number;
+      name: string;
+      thumbnail_url: string;
+      original_video_url?: string;
+      slug?: string;
+      sections?: {
+        components?: {
+          ingredient?: { name?: string };
+          raw_text?: string;
+        }[];
+      }[];
+    }) => {    
       const ingredients =
         recipe.sections?.flatMap(
           (section: { components?: { ingredient?: { name?: string }; raw_text?: string }[] }) =>
