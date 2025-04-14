@@ -37,6 +37,8 @@ export default function RecipeFinder() {
   const [showRegister, setShowRegister] = useState(false);
   const [showingFavorites, setShowingFavorites] = useState(false);
   const [favorites, setFavorites] = useState<Recipe[]>([]);
+  const [closingProfile, setClosingProfile] = useState(false);
+
 
 
   
@@ -68,6 +70,15 @@ export default function RecipeFinder() {
       document.documentElement.style.height = '';
     };
   }, []);
+
+  const handleCloseProfile = () => {
+    setClosingProfile(true);
+    setTimeout(() => {
+      setShowProfile(false);
+      setClosingProfile(false);
+    }, 300); // Match duration of slide-out
+  };
+  
   
   const toggle = (recipe: Recipe) => {
     const isSame = openRecipe?.id === recipe.id;
@@ -399,11 +410,16 @@ export default function RecipeFinder() {
   
   return (
     <div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
-      {showProfile && (
-  <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-end">
-    <div className="bg-white w-[300px] h-full shadow-lg p-6 relative">
+{showProfile && (
+  <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-end animate-fade-in">
+    <div className={`bg-white w-[300px] h-full shadow-lg p-6 relative transition-all duration-300 ${
+  closingProfile ? "animate-slide-out-right" : "animate-slide-in-right"
+}`}>
+
+
+
       <button
-        onClick={() => setShowProfile(false)}
+        onClick={handleCloseProfile}
         className="absolute top-4 right-4 text-red-500 font-bold"
       >
         ✖
@@ -687,7 +703,8 @@ onClick={async () => {
 
             {/* Recipe Results - Now using a more efficient grid layout */}
             {(showingFavorites ? favorites : recipes).length > 0 && (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-fade-in">
+
     {(showingFavorites ? favorites : recipes).map((recipe) => (
       <div
         key={recipe.id}
