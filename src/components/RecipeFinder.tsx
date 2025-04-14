@@ -93,6 +93,11 @@ export default function RecipeFinder() {
     }
   };
 
+  const isFavorited = (recipe: Recipe) => {
+    return favorites.some((fav) => fav.id === recipe.id);
+  };
+  
+
   const handleSaveFavorite = () => {
     if (!openRecipe?.ingredients?.length) {
       alert("⚠️ Please open the recipe first to load ingredients.");
@@ -133,6 +138,13 @@ export default function RecipeFinder() {
   
     const token = localStorage.getItem("token");
   
+    // ✅ Prevent duplicate save
+    const alreadySaved = favorites.some((fav) => fav.id === recipe.id);
+    if (alreadySaved) {
+      alert("⚠️ You've already favorited this recipe.");
+      return;
+    }
+  
     const res = await fetch("/api/favorites", {
       method: "POST",
       headers: {
@@ -141,22 +153,30 @@ export default function RecipeFinder() {
       },
       body: JSON.stringify({
         id: recipe.id,
-      }),      
+        title: recipe.title,
+        image: recipe.image,
+        sourceUrl: recipe.sourceUrl,
+        ingredients: recipe.ingredients,
+      }),
+      
     });
   
     if (res.ok) {
-      alert("✅ Recipe saved to favorites!");
+      const result = await res.json();
   
-      if (showingFavorites) {
-        setFavorites((prev) => {
-          const alreadyExists = prev.some((fav) => fav.id === recipe.id);
-          return alreadyExists ? prev : [...prev, recipe];
-        });
+      if (result.message === "Recipe already favorited") {
+        alert("⚠️ You've already favorited this recipe.");
+      } else {
+        alert("✅ Recipe saved to favorites!");
+        if (showingFavorites) {
+          setFavorites((prev) => [...prev, recipe]);
+        }
       }
     } else {
       alert("❌ Failed to save. Please try again.");
     }
   };
+  
   
   
   
@@ -791,18 +811,27 @@ onClick={async () => {
                     </a>
                     {showingFavorites ? (
   <button
-  onClick={() => removeFavorite(openRecipe.id)}
+    onClick={() => removeFavorite(openRecipe.id)}
     className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
   >
     💔 Remove from Favorites
   </button>
+) : isFavorited(openRecipe) ? (
+  <button
+    disabled
+    className="bg-gray-300 text-gray-600 px-4 py-2 rounded-lg cursor-not-allowed"
+  >
+    ✅ Already Saved
+  </button>
 ) : (
-  <button onClick={handleSaveFavorite}
+  <button
+    onClick={handleSaveFavorite}
     className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
   >
     ❤️ Save to Favorites
   </button>
 )}
+
 
                   </div>
                 </div>

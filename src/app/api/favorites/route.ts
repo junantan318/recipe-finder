@@ -34,32 +34,42 @@ export async function GET(req: NextRequest) {
 // ✅ POST: add a recipe to favorites
 export async function POST(req: NextRequest) {
   await dbConnect();
-  const token = req.headers.get('authorization')?.split(' ')[1];
+  const token = req.headers.get("authorization")?.split(" ")[1];
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const user = verifyToken(token);
-  
+
+  const userData = verifyToken(token);
   const body = await req.json();
 
-  // Ensure ingredients always exist
-  const favoriteToAdd = {
-    id: body.id,
-    title: body.title,
-    image: body.image,
-    sourceUrl: body.sourceUrl,
-    ingredients: Array.isArray(body.ingredients) ? body.ingredients : [],
-  };
+  // ✅ Validate input
+  const { id, title, image, sourceUrl, ingredients } = body;
 
-  const updatedUser = await User.findOneAndUpdate(
-    { email: user.email },
-    { $addToSet: { favorites: favoriteToAdd } },
-    { new: true }
-  );
-  console.log("🔄 Saving favorite with:", favoriteToAdd);
+  if (!id || !title || !image || !sourceUrl || !Array.isArray(ingredients)) {
+    return NextResponse.json(
+      { error: "Missing or invalid fields in request body" },
+      { status: 400 }
+    );
+  }
 
-  return NextResponse.json({ favorites: updatedUser.favorites });
+  const user = await User.findOne({ email: userData.email });
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  const alreadyExists = user.favorites.some((fav: any) => fav.id === id);
+  if (alreadyExists) {
+    return NextResponse.json({ message: "Recipe already favorited" }, { status: 200 });
+  }
+
+  const newFavorite = { id, title, image, sourceUrl, ingredients };
+  user.favorites.push(newFavorite);
+  await user.save();
+
+  return NextResponse.json({ message: "Recipe added to favorites", favorites: user.favorites });
 }
+
+
 
 
 // ✅ DELETE: remove a favorite by recipe ID
