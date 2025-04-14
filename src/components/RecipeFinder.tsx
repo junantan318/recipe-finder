@@ -498,13 +498,23 @@ onClick={async () => {
     const result = await res.json();
     const data = Array.isArray(result) ? result : result.favorites || [];
     
-    const recipes = await Promise.all(
-      data.map(async (fav: { id: string }) => { 
-        const res = await fetch(`/api/recipes?id=${fav.id}`);
-        return await res.json(); // includes full recipe with ingredients
-      })
-    );
-    setFavorites(recipes);
+    const recipeIds = data.map((fav: { id: string }) => fav.id);
+    
+    const res2 = await fetch("/api/recipes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ids: recipeIds }),
+    });
+    
+    if (res2.ok) {
+      const recipes = await res2.json();
+      setFavorites(recipes);
+    } else {
+      console.error("❌ Failed to fetch recipe details.");
+    }
+    
     
 
   } else {

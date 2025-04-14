@@ -128,3 +128,53 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function POST(req: NextRequest) {
+  const apiKey = process.env.RAPIDAPI_KEY;
+  const headers = {
+    "X-RapidAPI-Key": apiKey,
+    "X-RapidAPI-Host": "tasty.p.rapidapi.com",
+  };
+
+  try {
+    const body = await req.json();
+    const ids: string[] = body.ids;
+
+    if (!Array.isArray(ids)) {
+      return NextResponse.json({ error: "Invalid request format" }, { status: 400 });
+    }
+
+    const fetches = ids.map(async (id) => {
+      const detailUrl = `https://tasty.p.rapidapi.com/recipes/get-more-info?id=${id}`;
+      try {
+        const res = await axios.get(detailUrl, { headers });
+        const recipe = res.data;
+
+        const ingredients =
+          recipe.sections?.flatMap((section: any) =>
+            section.components?.map((comp: any) => comp.ingredient?.name || comp.raw_text || "")
+          ) || [];
+
+        return {
+          id: recipe.id,
+          title: recipe.name,
+          image: recipe.thumbnail_url,
+          sourceUrl: recipe.original_video_url || `https://tasty.co/recipe/${recipe.slug}`,
+          ingredients,
+        };
+      } catch {
+        return null;
+      }
+    });
+
+    const results = await Promise.all(fetches);
+    const validRecipes = results.filter((r) => r !== null);
+
+    return NextResponse.json(validRecipes);
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error("❌ Failed to bulk fetch recipes:", error.message);
+    return NextResponse.json({ error: "Failed to fetch recipes" }, { status: 500 });
+  }
+}
+
