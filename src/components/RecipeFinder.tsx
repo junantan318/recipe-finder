@@ -5,6 +5,8 @@ import { Search, Trash2, PlusCircle, XCircle, Loader } from "lucide-react";
 import ProfilePage from "@/components/auth/ProfilePage";
 import LoginPage from "@/components/auth/LoginPage";
 import RegisterPage from "@/components/auth/RegisterPage";
+import { ArrowLeft } from "lucide-react";
+
 
 
 // ✅ Define a TypeScript interface for recipes
@@ -598,74 +600,69 @@ onClick={async () => {
         </div>
 
         {/* Main Content */}
-        {showingFavorites && (
-  <button
-    onClick={() => setShowingFavorites(false)}
-    className="mb-4 bg-gray-200 hover:bg-gray-300 text-sm px-3 py-1 rounded"
-  >
-    ← Back to Search Results
-  </button>
-)}
 
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Filters Section - Now full width and more compact */}
-          <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <select
-                value={diet}
-                onChange={(e) => setDiet(e.target.value)}
-                className="border border-gray-300 p-2 rounded-lg text-sm w-full"
-              >
-                <option value="">Any Diet</option>
-                <option value="vegetarian">Vegetarian</option>
-                <option value="vegan">Vegan</option>
-                <option value="gluten_free">Gluten Free</option>
-              </select>
+          {!showingFavorites && (
+  <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <select
+        value={diet}
+        onChange={(e) => setDiet(e.target.value)}
+        className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+      >
+        <option value="">Any Diet</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="vegan">Vegan</option>
+        <option value="gluten_free">Gluten Free</option>
+      </select>
 
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="border border-gray-300 p-2 rounded-lg text-sm w-full"
-              >
-                <option value="">Any Type</option>
-                <option value="breakfast">Breakfast</option>
-                <option value="lunch">Lunch</option>
-                <option value="dinner">Dinner</option>
-                <option value="snack">Snack</option>
-                <option value="dessert">Dessert</option>
-              </select>
+      <select
+        value={type}
+        onChange={(e) => setType(e.target.value)}
+        className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+      >
+        <option value="">Any Type</option>
+        <option value="breakfast">Breakfast</option>
+        <option value="lunch">Lunch</option>
+        <option value="dinner">Dinner</option>
+        <option value="snack">Snack</option>
+        <option value="dessert">Dessert</option>
+      </select>
 
-              <select
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                className="border border-gray-300 p-2 rounded-lg text-sm w-full"
-              >
-                <option value="">Any Theme</option>
-                <option value="under_30_minutes">Under 30 Minutes</option>
-                <option value="easy">Easy</option>
-                <option value="healthy">Healthy</option>
-              </select>
+      <select
+        value={tags}
+        onChange={(e) => setTags(e.target.value)}
+        className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+      >
+        <option value="">Any Theme</option>
+        <option value="under_30_minutes">Under 30 Minutes</option>
+        <option value="easy">Easy</option>
+        <option value="healthy">Healthy</option>
+      </select>
 
-              <ExcludeDropdown />
-            </div>
-            
-            <button 
-              onClick={fetchRecipes} 
-              className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
-            >
-              {loading ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  <span>Searching...</span>
-                </>
-              ) : (
-                <>
-                  <Search className="w-5 h-5" />
-                  <span className="font-medium">Find Recipes</span>
-                </>
-              )}
-            </button>
-          </div>
+      <ExcludeDropdown />
+    </div>
+
+    <button 
+      onClick={fetchRecipes} 
+      className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
+    >
+      {loading ? (
+        <>
+          <Loader className="w-5 h-5 animate-spin" />
+          <span>Searching...</span>
+        </>
+      ) : (
+        <>
+          <Search className="w-5 h-5" />
+          <span className="font-medium">Find Recipes</span>
+        </>
+      )}
+    </button>
+  </div>
+)}
+
 
           {/* Main scrollable content area */}
           <div className="flex-1 overflow-y-auto p-4">
@@ -675,6 +672,18 @@ onClick={async () => {
                 <p className="text-red-700">{error}</p>
               </div>
             )}
+            {showingFavorites && (
+  <div className="flex items-center justify-between mb-3 px-1">
+    <button
+      onClick={() => setShowingFavorites(false)}
+      className="text-sm text-gray-600 hover:text-blue-600 flex items-center space-x-1"
+    >
+      <ArrowLeft className="w-4 h-4" />
+      <span>Back</span>
+    </button>
+  </div>
+)}
+
 
             {/* Recipe Results - Now using a more efficient grid layout */}
             {(showingFavorites ? favorites : recipes).length > 0 && (
