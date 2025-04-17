@@ -25,7 +25,43 @@ export default function RecipeFinder() {
   const [error, setError] = useState("");
   const [aiRecipe, setAiRecipe] = useState<string | null>(null); // AI-generated recipe
   const [aiLoading, setAiLoading] = useState(false); // AI loading state
-  const [savedIngredients, setSavedIngredients] = useState<string[]>([]);
+  type IngredientEntry = {
+    name: string;
+    expires: string; // ISO date string
+  };
+  
+  const [savedIngredients, setSavedIngredients] = useState<IngredientEntry[]>([]);
+
+  {savedIngredients.map((item, idx) => {
+    const today = new Date();
+    const expiry = new Date(item.expires);
+    const isToday = expiry.toDateString() === today.toDateString();
+    let color = "bg-green-500", text = "Fresh";
+    if (expiry < today && !isToday) {
+      color = "bg-red-500";
+      text = "Expired";
+    } else if (isToday) {
+      color = "bg-yellow-400";
+      text = "Nearly Expired";
+    }
+    
+  
+    return (
+      <div key={idx} className="flex items-center justify-between p-2 border-b">
+        <div>
+          {item.name}
+          <span className={`ml-2 px-2 py-1 rounded-full text-xs text-white ${color}`}>
+  {text}
+</span>
+        </div>
+      </div>
+    );
+  })}
+  
+
+  const [ingredientInput, setIngredientInput] = useState("");
+  const [expiryInput, setExpiryInput] = useState("");
+  
   const [openRecipe, setOpenRecipe] = useState<Recipe | null>(null);
   const [exclude, setExclude] = useState("");
   const [diet, setDiet] = useState("");
@@ -132,11 +168,12 @@ export default function RecipeFinder() {
         const data = await res.json();
   
         // Normalize to names if using Ingredient model
-        const names = Array.isArray(data)
-          ? data.map((item: { name: string }) => item.name)
-          : data.ingredients || [];
-  
-        setSavedIngredients(names);
+        if (Array.isArray(data)) {
+          setSavedIngredients(data); // assumes API returns [{ name, expires }]
+        } else {
+          setSavedIngredients([]);
+        }
+        
       })
       .catch((err) => {
         console.error("❌ Failed to load saved ingredients:", err);
@@ -213,7 +250,8 @@ export default function RecipeFinder() {
     const path = "/api/recipes";
     
     const queryParams = new URLSearchParams({
-      ...(savedIngredients.length && { ingredient: savedIngredients.join(",") }),
+      ...(savedIngredients.length && { ingredient: savedIngredients.map(i => i.name).join(",")
+      }),
       ...(diet && { diet }),
       ...(type && { type }),
       ...(tags && { tags }),
@@ -254,7 +292,12 @@ export default function RecipeFinder() {
     }
   };
 
-  const excludeOptions = savedIngredients.filter(i => i !== "").map(i => ({ label: i, value: i }));
+  const excludeOptions = savedIngredients.map((i, index) => ({
+    label: i.name,
+    value: `${i.name}-${index}`, // Ensures uniqueness and string keys
+  }));
+  
+
 
   const ExcludeDropdown = () => (
     <select
@@ -266,7 +309,7 @@ export default function RecipeFinder() {
         <option value="">No ingredients available to exclude</option>
       ) : (
         <>
-          <option value="">Exclude Ingredient</option>
+          <option key="default" value="">Exclude Ingredient</option>
           {excludeOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -276,32 +319,11 @@ export default function RecipeFinder() {
       )}
     </select>
   );
-
-  // ✅ Add an ingredient to the saved list
-  const addIngredient = async () => {
-    const trimmed = query.trim().toLowerCase();
-    if (trimmed && !savedIngredients.includes(trimmed)) {
-      const updated = [...savedIngredients, trimmed];
-      setSavedIngredients(updated);
-      setQuery(""); // clear input
-  
-      // POST only the new ingredient
-      const token = localStorage.getItem("token");
-      await fetch("/api/ingredients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name: trimmed }),
-      });
-    }
-  };
   
   // ✅ Remove a single ingredient
   const removeIngredient = async (ingredient: string) => {
     // Update local state
-    const updated = savedIngredients.filter((item) => item !== ingredient);
+    const updated = savedIngredients.filter((item) => item.name !== ingredient);
     setSavedIngredients(updated);
   
     // Update DB
@@ -408,8 +430,36 @@ export default function RecipeFinder() {
   };
   
   
-  return (
-    <div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
+  
+const getRecipeFreshness = (recipe: Recipe): string => {
+  const today = new Date();
+  let hasExpired = false;
+  let hasExpiringSoon = false;
+
+  for (const ing of recipe.ingredients) {
+    const match = savedIngredients.find(i => i.name.toLowerCase() === ing.toLowerCase());
+    if (match) {
+      const expiry = new Date(match.expires);
+      const isToday = expiry.toDateString() === today.toDateString();
+      let color = "bg-green-500", text = "Fresh";
+      if (expiry < today && !isToday) {
+        color = "bg-red-500";
+        text = "Expired";
+      } else if (isToday) {
+        color = "bg-yellow-400";
+        text = "Nearly Expired";
+      }
+      
+    }
+  }
+
+  if (hasExpired) return "expired";
+  if (hasExpiringSoon) return "expiring";
+  return "fresh";
+};
+
+
+return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
 {showProfile && (
   <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-end animate-fade-in">
     <div className={`bg-white w-[300px] h-full shadow-lg p-6 relative transition-all duration-300 ${
@@ -542,24 +592,47 @@ onClick={async () => {
             <h3 className="text-xl font-bold text-gray-800 mb-4">My Ingredients</h3>
 
             {/* Ingredient Input + Add Button */}
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                placeholder="Add ingredient..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addIngredient();
-                }}
-                className="flex-1 border border-gray-300 p-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              />
-              <button 
-                onClick={addIngredient} 
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg flex items-center justify-center transition-colors"
-              >
-                <PlusCircle className="w-5 h-5" />
-              </button>
-            </div>
+            <input
+  type="text"
+  value={ingredientInput}
+  placeholder="Ingredient name"
+  onChange={(e) => setIngredientInput(e.target.value)}
+  className="border p-2 rounded w-1/2"
+/>
+
+<input
+  type="date"
+  value={expiryInput}
+  onChange={(e) => setExpiryInput(e.target.value)}
+  className="border p-2 rounded w-1/2 mt-2"
+/>
+
+<button
+  className="bg-blue-500 text-white p-2 rounded mt-2"
+  onClick={async () => {
+    if (ingredientInput && expiryInput) {
+      const newIngredient = { name: ingredientInput, expires: expiryInput };
+      
+      setSavedIngredients(prev => [...prev, newIngredient]);
+      setIngredientInput("");
+      setExpiryInput("");
+  
+      // 🔥 Send to backend
+      const token = localStorage.getItem("token");
+      await fetch("/api/ingredients", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newIngredient),
+      });
+    }
+  }}
+  
+>
+  Add Ingredient
+</button>
 
             <div className="flex-1 overflow-y-auto">
               {savedIngredients.length === 0 ? (
@@ -567,24 +640,77 @@ onClick={async () => {
               ) : (
                 <>
                   <div className="space-y-2">
-                    {savedIngredients.map((ingredient) => (
-                      <div 
-                        key={ingredient} 
-                        className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm hover:bg-blue-50 transition-colors"
-                      >
-                        <span className="text-gray-700 flex-grow">{ingredient}</span>
-                        <button 
-                          onClick={() => removeIngredient(ingredient)} 
-                          className="text-red-500 hover:text-red-700 ml-2"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    ))}
+                  {savedIngredients.map((ingredient, index) => {
+  const today = new Date();
+  const expiry = new Date(ingredient.expires);
+  const isToday = expiry.toDateString() === today.toDateString();
+  let color = "bg-green-500", text = "Fresh";
+  if (expiry < today && !isToday) {
+    color = "bg-red-500";
+    text = "Expired";
+  } else if (isToday) {
+    color = "bg-yellow-400";
+    text = "Nearly Expired";
+  }
+  
+
+  return (
+    <div key={`${ingredient.name}-${index}`}
+      className="flex justify-between items-center bg-white p-3 rounded-lg shadow-sm hover:bg-blue-50 transition-colors"
+    >
+      <span className="text-gray-700 flex-grow">{ingredient.name}</span>
+      <span className={`ml-2 px-2 py-1 rounded-full text-xs text-white ${color}`}>
+        {text}
+      </span>
+      <button onClick={() => removeIngredient(ingredient.name)} className="text-red-500 hover:text-red-700 ml-2">
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
+})}
+
                   </div>
                 </>
               )}
             </div>
+
+            <button
+  className="bg-red-600 text-white px-3 py-2 rounded mt-4"
+  onClick={async () => {
+    const now = new Date();
+    const filtered = savedIngredients.filter(item => {
+      const expiry = new Date(item.expires);
+      const isToday = expiry.toDateString() === now.toDateString();
+      return expiry > now || isToday;
+    });
+    
+  
+    setSavedIngredients(filtered);
+  
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch("/api/ingredients", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ingredients: filtered }),
+      });
+  
+      if (!res.ok) {
+        throw new Error("Failed to update saved ingredients");
+      }
+  
+      console.log("✅ Expired ingredients removed from backend.");
+    } catch (err) {
+      console.error("❌ Error syncing with backend:", err);
+    }
+  }}
+>
+  Clear Expired Ingredients
+</button>
+
 
             {savedIngredients.length > 0 && (
               <button
@@ -734,6 +860,8 @@ onClick={async () => {
           <div className="p-3 flex-1 flex flex-col">
             <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
               {recipe.title}
+    
+
             </h3>
             <div className="mt-2 text-xs text-gray-500">
               {recipe.ingredients?.length ?? 0} ingredients
@@ -806,11 +934,12 @@ onClick={async () => {
                   <div className="space-y-2">
                     {openRecipe.ingredients.map((ing, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        {savedIngredients.includes(ing.toLowerCase()) ? (
-                          <span className="text-green-500">✓</span>
-                        ) : (
-                          <span className="text-red-500">✗</span>
-                        )}
+                    {savedIngredients.some(i => i.name.toLowerCase() === ing.toLowerCase()) ? (
+                      <span className="text-green-500">✓</span>
+                    ) : (
+                      <span className="text-red-500">✗</span>
+                    )}
+
                         <span>{ing}</span>
                       </div>
                     ))}
@@ -822,17 +951,15 @@ onClick={async () => {
                   <p className="text-green-700 text-sm">
                     ✅ You have:{" "}
                     {openRecipe.ingredients
-                      .filter((ing) =>
-                        savedIngredients.includes(ing.toLowerCase())
-                      )
+.filter((ing) => savedIngredients.some(i => i.name.toLowerCase() === ing.toLowerCase()))
+
                       .join(", ") || "None"}
                   </p>
                   <p className="text-red-600 text-sm">
                     ❌ You need:{" "}
                     {openRecipe.ingredients
-                      .filter((ing) =>
-                        !savedIngredients.includes(ing.toLowerCase())
-                      )
+.filter((ing) => !savedIngredients.some(i => i.name.toLowerCase() === ing.toLowerCase()))
+
                       .join(", ") || "None"}
                   </p>
                   
