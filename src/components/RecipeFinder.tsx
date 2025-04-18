@@ -6,6 +6,8 @@ import ProfilePage from "@/components/auth/ProfilePage";
 import LoginPage from "@/components/auth/LoginPage";
 import RegisterPage from "@/components/auth/RegisterPage";
 import { ArrowLeft } from "lucide-react";
+import Fuse from "fuse.js";
+
 
 
 
@@ -16,7 +18,9 @@ interface Recipe {
   image: string;
   sourceUrl: string;
   ingredients: string[];
+  usesExpiring?: boolean; // optional
 }
+
 
 export default function RecipeFinder() {
   const [query, setQuery] = useState("");
@@ -67,6 +71,7 @@ export default function RecipeFinder() {
   const [diet, setDiet] = useState("");
   const [type, setType] = useState("");
   const [tags, setTags] = useState("");
+  const [prioritizeExpiring, setPrioritizeExpiring] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showProfile, setShowProfile] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
@@ -74,6 +79,27 @@ export default function RecipeFinder() {
   const [showingFavorites, setShowingFavorites] = useState(false);
   const [favorites, setFavorites] = useState<Recipe[]>([]);
   const [closingProfile, setClosingProfile] = useState(false);
+
+  const looselyMatches = (a: string, b: string) => {
+    const normA = a.trim().toLowerCase();
+    const normB = b.trim().toLowerCase();
+    return (
+      normA === normB ||
+      normA.includes(normB + " ") ||
+      normA.includes(" " + normB) ||
+      normB.includes(normA + " ") ||
+      normB.includes(" " + normA)
+    );
+  };
+  
+
+  const knownIngredients = [
+    "broccoli", "carrot", "onion", "potato", "chicken",
+    "cheese", "lettuce", "tomato", "beef", "spinach",
+  ];
+
+
+  
 
 
 
@@ -232,57 +258,28 @@ export default function RecipeFinder() {
   
   // ✅ Fetch Recipes from API
   const fetchRecipes = async () => {
-    if (
-      savedIngredients.length === 0 &&
-      !diet &&
-      !type &&
-      !tags &&
-      !exclude
-    ) {
-      setError("Please select at least one filter or ingredient!");
-      return;
-    }
-
     setLoading(true);
     setError("");
-
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-    const path = "/api/recipes";
-    
-    const queryParams = new URLSearchParams({
-      ...(savedIngredients.length && { ingredient: savedIngredients.map(i => i.name).join(",")
-      }),
-      ...(diet && { diet }),
-      ...(type && { type }),
-      ...(tags && { tags }),
-      ...(exclude && { exclude }),
-    }).toString();
-
+  
     try {
-      console.log("🔍 Fetching from:", `${baseUrl}${path}?${queryParams}`);
-
-      const response = await fetch(`${baseUrl}${path}?${queryParams}`);
-
+      const testUrl = "https://www.allrecipes.com/recipe/24074/alysias-basic-meat-lasagna/";
+      const response = await fetch(`/api/recipes?url=${encodeURIComponent(testUrl)}`);
+  
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
-
+  
       const data = await response.json();
-
-      if (!data || data.length === 0) {
-        setError("No recipes found! Try different filters.");
-        setRecipes([]);
-        return;
-      }
-      
+  
       const updatedRecipes = data.map((recipe: Recipe) => ({
-        id: recipe.id,
-        title: recipe.title,
-        image: recipe.image,
-        sourceUrl: recipe.sourceUrl,
-        ingredients: recipe.ingredients || [],
+        ...recipe,
+        usesExpiring: recipe.ingredients.some((ing) =>
+          savedIngredients.some((i) =>
+            ing.toLowerCase().includes(i.name.toLowerCase())
+          )
+        ),
       }));
-      
+  
       setRecipes(updatedRecipes);
     } catch (error) {
       console.error("🚨 Fetch Error:", error);
@@ -291,6 +288,7 @@ export default function RecipeFinder() {
       setLoading(false);
     }
   };
+  
 
   const excludeOptions = savedIngredients.map((i, index) => ({
     label: i.name,
@@ -319,6 +317,7 @@ export default function RecipeFinder() {
       )}
     </select>
   );
+
   
   // ✅ Remove a single ingredient
   const removeIngredient = async (ingredient: string) => {
@@ -610,25 +609,56 @@ onClick={async () => {
 <button
   className="bg-blue-500 text-white p-2 rounded mt-2"
   onClick={async () => {
-    if (ingredientInput && expiryInput) {
-      const newIngredient = { name: ingredientInput, expires: expiryInput };
-      
-      setSavedIngredients(prev => [...prev, newIngredient]);
-      setIngredientInput("");
-      setExpiryInput("");
+    let name = ingredientInput.trim().toLowerCase();
+
+    const fuse = new Fuse(knownIngredients, { threshold: 0.4 });
+const matches = fuse.search(name);
+if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
+  const suggested = matches[0].item;
+  const confirmReplace = confirm(`Did you mean "${suggested}"?`);
+
+  if (confirmReplace) {
+    setIngredientInput(suggested);
+    name = suggested.toLowerCase(); // update the variable used later
+  } else {
+    return;
+  }
   
-      // 🔥 Send to backend
-      const token = localStorage.getItem("token");
-      await fetch("/api/ingredients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(newIngredient),
-      });
+}
+
+    if (!name || !expiryInput) {
+      alert("⚠️ Please enter both an ingredient name and an expiration date.");
+      return;
     }
+  
+    const isDuplicate = savedIngredients.some(
+      (i) => i.name.trim().toLowerCase() === name
+    );
+  
+    if (isDuplicate) {
+      alert("⚠️ This ingredient already exists.");
+      return;
+    }
+  
+    const newIngredient = { name, expires: expiryInput };
+
+  
+    setSavedIngredients(prev => [...prev, newIngredient]);
+    setIngredientInput("");
+    setExpiryInput("");
+  
+    const token = localStorage.getItem("token");
+    await fetch("/api/ingredients", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(newIngredient),
+    });
   }}
+  
+  
   
 >
   Add Ingredient
@@ -796,6 +826,21 @@ onClick={async () => {
       <ExcludeDropdown />
     </div>
 
+    <div className="mt-2">
+  <label className="inline-flex items-center">
+    <input
+      type="checkbox"
+      checked={prioritizeExpiring}
+      onChange={(e) => setPrioritizeExpiring(e.target.checked)}
+      className="mr-2"
+    />
+    <span className="text-sm text-gray-700">
+      Prioritize ingredients expiring soon
+    </span>
+  </label>
+</div>
+
+
     <button 
       onClick={fetchRecipes} 
       className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors"
@@ -858,11 +903,16 @@ onClick={async () => {
             />
           </div>
           <div className="p-3 flex-1 flex flex-col">
-            <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
-              {recipe.title}
-    
+          <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
+  {recipe.title}
+</h3>
 
-            </h3>
+{prioritizeExpiring && recipe.usesExpiring && (
+  <span className="inline-block mt-1 px-2 py-1 text-xs bg-yellow-500 text-white rounded-full">
+    🕒 Uses expiring ingredients
+  </span>
+)}
+
             <div className="mt-2 text-xs text-gray-500">
               {recipe.ingredients?.length ?? 0} ingredients
             </div>
@@ -934,11 +984,15 @@ onClick={async () => {
                   <div className="space-y-2">
                     {openRecipe.ingredients.map((ing, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                    {savedIngredients.some(i => i.name.toLowerCase() === ing.toLowerCase()) ? (
-                      <span className="text-green-500">✓</span>
-                    ) : (
-                      <span className="text-red-500">✗</span>
-                    )}
+{savedIngredients.some(i =>
+  ing.toLowerCase().includes(i.name.toLowerCase()) ||
+  i.name.toLowerCase().includes(ing.toLowerCase())
+) ? (
+  <span className="text-green-500">✓</span>
+) : (
+  <span className="text-red-500">✗</span>
+)}
+
 
                         <span>{ing}</span>
                       </div>
@@ -951,16 +1005,26 @@ onClick={async () => {
                   <p className="text-green-700 text-sm">
                     ✅ You have:{" "}
                     {openRecipe.ingredients
-.filter((ing) => savedIngredients.some(i => i.name.toLowerCase() === ing.toLowerCase()))
+  .filter((ing) =>
+    savedIngredients.some(i =>
+      ing.toLowerCase().includes(i.name.toLowerCase()) ||
+      i.name.toLowerCase().includes(ing.toLowerCase())
+    )
+  )
+  .join(", ") || "None"}
 
-                      .join(", ") || "None"}
                   </p>
                   <p className="text-red-600 text-sm">
                     ❌ You need:{" "}
                     {openRecipe.ingredients
-.filter((ing) => !savedIngredients.some(i => i.name.toLowerCase() === ing.toLowerCase()))
+  .filter((ing) =>
+    !savedIngredients.some(i =>
+      ing.toLowerCase().includes(i.name.toLowerCase()) ||
+      i.name.toLowerCase().includes(ing.toLowerCase())
+    )
+  )
+  .join(", ") || "None"}
 
-                      .join(", ") || "None"}
                   </p>
                   
                   <div className="flex flex-wrap gap-2 mt-4">
