@@ -64,6 +64,12 @@ async function scrapeAllRecipes(url) {
   
       if (recipeData) {
         ingredients = recipeData.recipeIngredient || [];
+      
+        // Add new metadata
+        var cuisine = recipeData.recipeCuisine || null;
+        var category = recipeData.recipeCategory || null;
+        var diet = recipeData.suitableForDiet || recipeData.keywords || null;
+      
         // pick the first image, whether it's a string or an array
         const rawImage = recipeData.image;
         if (Array.isArray(rawImage)) {
@@ -71,7 +77,9 @@ async function scrapeAllRecipes(url) {
         } else if (typeof rawImage === "string") {
           image = rawImage;
         }
-      } else {
+      }
+      
+      else {
         console.warn("⚠️ No recipeData found in JSON‑LD for:", url);
       }
     } catch (e) {
@@ -99,14 +107,18 @@ async function scrapeAllRecipes(url) {
     .map((_, el) => $(el).text().trim())
     .get();
 
-  return {
-    id: crypto.randomUUID(),
-    title,
-    image,
-    sourceUrl: url,
-    ingredients,
-    instructions
-  };
+    return {
+      id: crypto.randomUUID(),
+      title,
+      image,
+      sourceUrl: url,
+      ingredients,
+      instructions,
+      cuisine,
+      category,
+      diet
+    };
+    
 }
 
 

@@ -10,6 +10,10 @@ const UserSchema = new mongoose.Schema({
       title: String,
       image: String,
       sourceUrl: String,
+      ingredients: [String],
+      cuisine: [String],
+      category: [String],
+      diet: String,
     }
   ]
 });

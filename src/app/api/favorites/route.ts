@@ -28,7 +28,9 @@ export async function GET(req: NextRequest) {
   
 
   const foundUser = await User.findOne({ email: user.email });
+  console.log("📤 Returning favorites:", foundUser.favorites);
   return NextResponse.json({ favorites: foundUser.favorites || [] });
+
 }
 
 // ✅ POST: add a recipe to favorites
@@ -41,10 +43,18 @@ export async function POST(req: NextRequest) {
 
   const userData = verifyToken(token);
   const body = await req.json();
-
-  // ✅ Validate input
+  console.log("💾 Incoming recipe:", body);
+  
   const { id, title, image, sourceUrl, ingredients } = body;
 
+  if (!id || !title || !image || !sourceUrl || !Array.isArray(ingredients) || ingredients.length === 0) {
+    return NextResponse.json(
+      { error: "Missing or invalid fields in request body" },
+      { status: 400 }
+    );
+  }
+  
+  // ✅ Validate input
   if (!id || !title || !image || !sourceUrl || !Array.isArray(ingredients)) {
     return NextResponse.json(
       { error: "Missing or invalid fields in request body" },
@@ -62,12 +72,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: "Recipe already favorited" }, { status: 200 });
   }
 
-  const newFavorite = { id, title, image, sourceUrl, ingredients };
-  user.favorites.push(newFavorite);
+  // ✅ Store the entire recipe object
+  user.favorites.push(body);
   await user.save();
 
   return NextResponse.json({ message: "Recipe added to favorites", favorites: user.favorites });
 }
+
 
 
 
@@ -82,6 +93,8 @@ export async function DELETE(req: NextRequest) {
   const user = verifyToken(token);
   
   const body = await req.json();
+  console.log("💾 Incoming recipe:", body);
+
 
   const updatedUser = await User.findOneAndUpdate(
     { email: user.email },

@@ -1,6 +1,6 @@
 [
   {
-    "id": "144c33c9-0283-41c6-9796-ca7630b2e8c4",
+    "id": "26ff231e-6c5a-4123-bd8f-3f7e0a051ec1",
     "title": "Chicken Murphy",
     "image": "https://www.allrecipes.com/thmb/oT3j4_E0bxMkpnOwQD0oNIWKaJk=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/34870-chicken-murphy-ddmfs-2x1-49a0f6f5468c417aa98d529e6c2e46d5.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/34870/chicken-murphy/",
@@ -42,10 +42,17 @@
       "Dotdash Meredith Food Studios",
       "Sprinkle with parsley before serving.",
       "Dotdash Meredith Food Studios"
-    ]
+    ],
+    "cuisine": [
+      "Italian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "1b54e24d-29ef-44ff-a237-9d158a82c6a0",
+    "id": "c4693311-9718-41c8-946c-911c083f627a",
     "title": "Weeknight Skillet Slaw",
     "image": "https://www.allrecipes.com/thmb/gaMSf4TStMPPtOSDnV70f3QLOi8=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/4260708-weeknight-skillet-slaw-Buckwheat-Queen-4x3-1-6cb06936178642c3a8f57bdeeae264da.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/253157/weeknight-skillet-slaw/",
@@ -73,10 +80,18 @@
       "Sprinkle sesame seeds over slaw before serving.",
       "Substitute ginger paste for the minced ginger and/or white sugar for the agave syrup if desired.",
       "Use coleslaw mix with red cabbage and carrots for maximum color and vegetable variety."
-    ]
+    ],
+    "cuisine": [
+      "American",
+      "Asian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "d4df2d7e-5668-4700-8744-4619422c7219",
+    "id": "149389d3-44ea-4d58-b7a8-ccdfa779148c",
     "title": "Chicken with Creamy Sun-Dried Tomato Sauce",
     "image": "https://www.allrecipes.com/thmb/EzgIaClB4fYDGHlSZmaj7_UYK_4=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/6274449-9d4af94871df48ffa28642b78410d536.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/269649/skillet-chicken-with-sun-dried-tomato-sauce/",
@@ -98,10 +113,17 @@
       "Melt 4 tablespoons butter in a large nonstick skillet over medium heat and cook 1/2 of the chicken breasts until they are no longer pink in the center and the juices run clear, 5 to 10 minutes. An instant-read thermometer inserted into the center should read at least 165 degrees F (74 degrees C). Remove from skillet and set aside. Melt another 4 tablespoons butter and repeat with the remaining chicken breasts. Set aside.",
       "Melt remaining 2 tablespoons butter in the same skillet and add garlic, Italian seasoning, and red pepper flakes. Cook, stirring constantly, for 1 minute. Pour in wine and bring to a boil. Reduce heat and simmer for 2 minutes. Pour in chicken broth, return to a boil, reduce heat, and simmer for 5 minutes. Stir in cream and sun-dried tomatoes. Simmer for 5 minutes.",
       "Stir in basil and return chicken to the skillet. Cook until chicken is thoroughly heated and sauce has thickened, about 5 minutes."
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "d6a52cc9-2db7-402d-86e5-c09418d23146",
+    "id": "a9f86491-4e70-4a37-b3d3-77eb3cdaf942",
     "title": "Arroz Con Pollo (Chicken and Rice)",
     "image": "https://www.allrecipes.com/thmb/ZninV541jw2T1fTc-dMyi0KUGgA=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/784556-52f45f43f6104d2f814d4dbf630dae9d.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/8541/carols-arroz-con-pollo/",
@@ -126,10 +148,17 @@
       "Heat oil in a large skillet over medium heat. Add seasoned chicken; cook and stir until no longer pink in the center and golden brown on all sides, about 10 minutes. Transfer chicken onto a plate; set aside.",
       "Add green pepper, onions, and garlic to the same skillet; cook and stir for 5 minutes. Add rice; cook and stir until rice is opaque, 1 to 2 minutes. Stir in broth, tomatoes, white wine, and saffron. Stir in remaining 1/4 teaspoon salt, 1/4 teaspoon pepper, and 1/4 teaspoon paprika; bring to a boil, cover, and simmer for 20 minutes.",
       "Add chicken and stir until heated through. Stir in parsley and serve."
-    ]
+    ],
+    "cuisine": [
+      "Latin"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "697c41cf-368a-4b00-9802-5b3bb2a437f2",
+    "id": "5a4c42d7-4191-4fc8-b168-aa794b5693fb",
     "title": "Unstuffed Pepper Skillet",
     "image": "https://www.allrecipes.com/thmb/5uFnhe5Ap7NJUknkjrvpBso352Q=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Unstuffed-Pepper-Skillet-ddmfs-2x1-066-11145389f45948dc9f86672a749443a7.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/8538585/unstuffed-pepper-skillet/",
@@ -155,10 +184,17 @@
       "Dotdash Meredith Food Studios",
       "Uncover, remove from heat, and sprinkle with shredded cheese. Re-cover and let sit until cheese melts, 1 to 2 minutes. Serve hot sprinkled with basil or parsley.",
       "Dotdash Meredith Food Studios"
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "f3380151-f4cf-43ee-8fc1-a2b05ad84df0",
+    "id": "08a170b2-69e3-4a41-9d60-940d8461becc",
     "title": "Tater Tot Hotdish",
     "image": "https://www.allrecipes.com/thmb/8h9MReU5jPgYmKpmBgz5MtnPfkE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Tater-Tot-Dish-ddmfs-2x1-211-7c35fba6dd1a4693add91b6ccf7bee01.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/8538705/tater-tot-hotdish/",
@@ -186,10 +222,17 @@
       "Toss tater tots and seasoned salt in a bowl to combine. Arrange tater tots decoratively over beef mixture in the skillet, avoiding large gaps between tots.",
       "Bake in the preheated oven until tater tots are golden and crisp, about 1 hour. Sprinkle with cheese and scallions; cool 10 minutes before serving.",
       "Dotdash Meredith Food Studios"
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "bc4f70ad-0f01-4925-8d25-d27babee3714",
+    "id": "d151f161-5c6d-4177-ae93-ca3bec7567e1",
     "title": "Ground Beef Stroganoff Noodles",
     "image": "https://www.allrecipes.com/thmb/hPwI7dUKYG8dUOUXZfOOatxiLqc=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Ground-Beef-Stroganoff-Noodles-2x1-1-2000-5be02cf6a1c74cbeb4fd15e7173a7abb.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/8526807/ground-beef-stroganoff-noodles/",
@@ -231,10 +274,19 @@
       "Serve immediately with additional sour cream and green onions or chives if so desired.",
       "ALLRECIPES / SONIA BOZZO",
       "Cooking time may vary based on which brand and shape of egg noodle you use. If the pan gets too dry before the noodles are cooked through, add more broth."
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner",
+      "Entree",
+      "Pasta"
+    ],
+    "diet": null
   },
   {
-    "id": "74e0a5da-224d-433b-b441-cec2f1efcdeb",
+    "id": "f0e41031-cd93-46a7-a5b5-3ecb5c362bf5",
     "title": "One Pot Tortellini Bake",
     "image": "https://www.allrecipes.com/thmb/vt41Q5GFFGYaPkU1ASlYvEUVgss=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/one-pot-tortellini-bake-thedailygourmet-2x1-1-7dce384df5b848688b356d32c5622dff.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/8468509/one-pot-tortellini-bake/",
@@ -257,10 +309,15 @@
       "Meanwhile, preheat the oven to 375 degrees F (190 degrees C).",
       "Add cream cheese to tortellini mixture and stir gently to blend; sprinkle mozzarella cheese over the surface.",
       "Bake in the preheated oven until cheese is melted and golden brown, about 15 minutes. Serve immediately."
-    ]
+    ],
+    "cuisine": null,
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "9988f4d3-d972-4fd0-a7d2-74f9b3192d9a",
+    "id": "bec1a960-bafb-4584-a5ff-71b39f9c83f1",
     "title": "One-Pan Tomato & Spinach Chicken Pasta",
     "image": "https://www.allrecipes.com/thmb/6iLKAG-vQNQCNoHxKO5J1UblBRI=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/One-Pan-Chicken-Pasta-Romano-2x1-1-2000-22b8c5896038455d9668413355fe564c.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/8469279/one-pan-tomato-spinach-chicken-pasta/",
@@ -279,10 +336,15 @@
       "Season the chicken as desired. Heat the oil in a 12-inch skillet over medium-high heat. Add the chicken and cook until well browned, stirring often. Remove the chicken from the skillet.",
       "Add the onion to the skillet and cook until tender-crisp, stirring occasionally. Add the wine and heat to a boil, stirring to scrape up any browned bits from the bottom of the skillet.",
       "Stir in the tomatoes, Swanson Chicken Broth, penne, and water; heat to a boil. Reduce the heat to medium. Cook for 10 minutes or until the penne is tender, stirring occasionally. Return the chicken to the skillet. Cook for 2 minutes or until the chicken is cooked through. Stir in the spinach and cook for 1 minute or until the spinach is wilted."
-    ]
+    ],
+    "cuisine": null,
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "e18a339e-8110-4055-b219-20a44cefcb40",
+    "id": "82b013f3-2fc8-4c96-be11-5d6b6bae8518",
     "title": "One Pot Lemon Chicken Orzo",
     "image": "https://www.allrecipes.com/thmb/aNIqiLw9jt2d4wfEJtDvCEBkXyI=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/8521894-one-pot-lemon-chicken-orzo-DDMFS-4x3-2cf159fce7bf446a97681ce92acb3ec8.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/8521894/one-pot-lemon-chicken-orzo/",
@@ -313,10 +375,17 @@
       "Dotdash Meredith Food Studios",
       "Serve immediately topped with additional Parmesan and parsley.",
       "DOTDASH MEREDITH FOOD STUDIOS"
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "84d26e0d-0128-4812-8376-76438cc12744",
+    "id": "da651fe7-7e15-45fa-a525-2eecc3b5cfce",
     "title": "Chicken Tinola",
     "image": "https://www.allrecipes.com/thmb/DffejbaV_BtbfcfuMfLZC5psayI=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/212929-chicken-tinola-ddmfs-beauty-1x2-4792da9f161f41acb50bdd25b74c3d8e.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/212929/chicken-tinola/",
@@ -346,10 +415,17 @@
       "Add bok choy and spinach; cook until spinach is just wilted, 1 to 2 minutes. Serve hot.",
       "Dotdash Meredith Food Studios",
       "You can use a green papaya instead of chayote squash if preferred."
-    ]
+    ],
+    "cuisine": [
+      "Asian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "028abb6b-0270-43f1-a0db-74f6f1df2dc6",
+    "id": "f6860f2a-787c-49e4-9bea-a5b87d895059",
     "title": "Italian Sausage, Peppers, and Onions",
     "image": "https://www.allrecipes.com/thmb/f_iLHrdpC6SizqQ0n__RgSV159I=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/76808-italian-sausage-peppers-and-onions-DDMFS-4x3-6d4ee7afa68a4ced96b9816d9b584ab7.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/76808/italian-sausage-peppers-and-onions/",
@@ -371,10 +447,17 @@
       "Return sausage slices to the skillet. Reduce heat to low, cover, and simmer 15 minutes, or until sausage is heated through, adding more wine if needed.",
       "Serve hot and enjoy!",
       "DOTDASH MEREDITH FOOD STUDIOS"
-    ]
+    ],
+    "cuisine": [
+      "Italian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "8f70f8c1-488b-4da1-94cb-1e55758c9e9e",
+    "id": "bce672ab-bcaa-43de-bb66-98dc9667d72f",
     "title": "Indian Chicken Curry",
     "image": "https://www.allrecipes.com/thmb/QcrNwbI0JvxdPwZ47m2bj2HY7ck=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/46822-Indian-Chicken-Curry-103301-2x1-1-41bd5b8de7ed476ea3c1fc023168cf39.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/46822/indian-chicken-curry-ii/",
@@ -407,10 +490,17 @@
       "Dotdash Meredith Food Studios",
       "Serve hot and enjoy!",
       "DOTDASH MEREDITH FOOD STUDIOS"
-    ]
+    ],
+    "cuisine": [
+      "Indian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "8d120961-6fa5-4cac-b857-400c30e26967",
+    "id": "023854fa-3817-4de7-a9de-91bb47645b87",
     "title": "Falafel with Canned Chickpeas",
     "image": "https://www.allrecipes.com/thmb/AfDUpNk9Q_BGqnPAHWKWtXcv0GE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/274884-falafel-with-canned-chickpeas-ddmfs-Beauty-1x2-1-0af9a32cd67d4bb8bfd8c767f4fdbcff.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/274884/falafel-with-canned-chickpeas/",
@@ -439,10 +529,17 @@
       "Dotdash Meredith Food Studios",
       "Heat oil in a skillet over medium-high heat. Form mixture into twelve 3-inch diameter patties. Fry patties in hot oil until browned, 3 to 4 minutes per side.",
       "Dotdash Meredith Food Studios"
-    ]
+    ],
+    "cuisine": [
+      "Middle Eastern"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "5c53998b-93fe-48c8-813d-8168b8a978b9",
+    "id": "7ba0af1e-886e-4202-bc6b-ccb231a725de",
     "title": "Garlic-Brown Sugar Chicken Thighs",
     "image": "https://www.allrecipes.com/thmb/Ecb0WvEHlNIDO_wZLPT_HSLnQ0M=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/279903-garlic-brown-sugar-chicken-thighs-DDMFS-4x3-e72a61c1326f442dbde53bc2c4065f2f.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/279903/garlic-brown-sugar-chicken-thighs/",
@@ -473,10 +570,17 @@
       "Drizzle pan sauce over chicken thighs when serving.",
       "DOTDASH MEREDITH FOOD STUDIOS",
       "Bone-in chicken thighs take longer to cook than boneless. If you substitute boneless thighs, they will cook faster. Be sure to check with an instant-read thermometer to see when yours are done."
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "bc93a88f-01c0-4228-935e-17e6d8a90801",
+    "id": "7a72b8f5-b8e1-4a41-839e-5cea003411c8",
     "title": "Mexican Rice and Beans",
     "image": "https://www.allrecipes.com/thmb/81j6KlbHoHv-R7e1-s3vUB-JMak=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/7989559-4b139ba34ab34cbb926073511f30d88f.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/279440/mexican-rice-and-beans/",
@@ -499,10 +603,17 @@
       "Stir in tomato paste and cook for 1 to 2 minutes. Add vegetable broth and pinto beans. Bring to a boil; reduce heat to low. Cover and simmer until rice is tender, 15 to 20 minutes.",
       "Remove the pot from the heat, keep covered, and let stand for at least 5 minutes. Fluff with a fork.",
       "You can use green bell pepper instead of poblano and chicken broth instead of vegetable broth."
-    ]
+    ],
+    "cuisine": [
+      "Mexican Inspired"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "d2e439a6-a95a-4f8b-864c-8fecac463474",
+    "id": "f485ea5f-d031-43a7-bbd3-f18ff66c2e8f",
     "title": "One-Pot Spaghetti with Meat Sauce",
     "image": "https://www.allrecipes.com/thmb/2-PcGBqyA0NlGC5yp-DL3pLkgOc=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/5925376-ab22323773054473b87f9fb7ec2f9fdc.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/269004/one-pot-spaghetti-with-meat-sauce/",
@@ -521,10 +632,17 @@
       "Stir pasta sauce, water, and Italian seasoning into the pot; bring to a boil. Stir in spaghetti noodles, return to a boil, and cook, stirring occasionally, until noodles are cooked through and sauce has thickened, 17 to 20 minutes.",
       "Serve topped with grated Parmesan cheese.",
       "You can use mild or hot ground Italian sausage."
-    ]
+    ],
+    "cuisine": [
+      "Italian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "38bbbd5e-3d3a-49a4-8dee-24833c0ac356",
+    "id": "0cf49cb2-7080-4deb-b09e-ea9d98aabacd",
     "title": "One Pan Orecchiette Pasta",
     "image": "https://www.allrecipes.com/thmb/QhqEBuEEgCWRsNZK98kElp6HFl0=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ALR-239047-one-pan-orecchiette-pasta-VAT-2x1-a2e2b613e4004cdab861bb59a5ad4925.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/239047/one-pan-orecchiette-pasta/",
@@ -551,10 +669,17 @@
       "Allrecipes/Qi Ai",
       "Ladle pasta into bowls and sprinkle with Parmigiano-Reggiano cheese.",
       "Allrecipes/Qi Ai"
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "5127eaf6-f475-48cd-a57a-b888475942a3",
+    "id": "a37ba475-3a5b-49b1-bfff-7d22dfc8d6f3",
     "title": "Honey Garlic Chicken Thighs",
     "image": "https://www.allrecipes.com/thmb/ENlhSRXqFxl2MoGIPAAGxwHLG1c=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/AR-282124-HoneyGarlicChickenThighs-beauty-2x1-9937626c05fc4deeb72a42957ee12a6f.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/282124/honey-garlic-chicken-thighs/",
@@ -589,10 +714,18 @@
       "You can use 1 entire medium head of garlic, chopped, instead of cloves.",
       "Parsley can be substituted for cilantro.",
       "Dotdash Meredith Food Studios"
-    ]
+    ],
+    "cuisine": [
+      "American",
+      "Asian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "1e84631e-1422-4f28-a3aa-85bf8b0a1211",
+    "id": "8335354e-4905-4f2e-aff1-ec6380170966",
     "title": "Pork Tenderloin with Apples and Onions",
     "image": "https://www.allrecipes.com/thmb/OoHpBOrQppyIe-FGogeuWfcRR58=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/7122690_PorkTenderloinwithApplesandOnions2x1-42f91345dee742f080efa6efd6761efa.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/275977/pork-tenderloin-with-apples-and-onions/",
@@ -620,10 +753,17 @@
       "Slice pork and serve over apple mixture.",
       "The Granny Smith apples will cook down and become a sauce for the pork. If you want the apples to keep their shape, use Golden Delicious or another firm cooking apple of your choice.",
       "You can reduce chicken stock in a microwave-safe container in the microwave instead of on the stovetop."
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "f1b01747-9553-4f0d-aab0-d0d96bf64195",
+    "id": "df9d4239-639c-4031-bb55-ba08fa172059",
     "title": "Scrambled Eggs in a Mug",
     "image": "https://www.allrecipes.com/thmb/QIPfDV2L858ewwhV5eu8dg1wn24=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/257530-Scrambled-Eggs-in-a-Mug-DDMFS-2x1-73058bb924e04c29959508097dfbe0fa.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/257530/scrambled-eggs-in-a-mug/",
@@ -641,10 +781,17 @@
       "Dotdash Meredith Food Studios",
       "Microwave on high until cooked through and fluffy, about 90 seconds. Season with pepper and serve.",
       "Dotdash Meredith Food Studios"
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Breakfast"
+    ],
+    "diet": null
   },
   {
-    "id": "c9872e7d-c110-4e62-ae93-d6a5a7414c83",
+    "id": "56c3b2c5-24a2-4435-917b-4f99edc4ab79",
     "title": "One-Pot Crispy Chicken and Rice",
     "image": "https://www.allrecipes.com/thmb/LuZatXBAHbQ7EDQvtdJJPs1ZPQw=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/8895794_One-PotCrispyChickenandRice2x1-effc936b669e4071880b8e4659bd6e8a.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/282524/one-pot-crispy-chicken-and-rice/",
@@ -673,10 +820,17 @@
       "Dotdash Meredith Food Studios",
       "Bake in the preheated oven until all liquid has been absorbed and chicken is cooked through, 45 to 55 minutes. Add remaining stock if liquid is absorbed before rice and chicken are cooked through. Sprinkle with parsley and squeeze lemon juice over the top.",
       "This recipe works with short- and long-grain rice or other grains such as farro."
-    ]
+    ],
+    "cuisine": [
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "981775b7-4c79-4d12-adcd-92403212dc8e",
+    "id": "2f7c9452-f733-4a54-8299-252f9a4537f4",
     "title": "Chef John's American Goulash",
     "image": "https://www.allrecipes.com/thmb/FpyAb4XsJKNNORGF5ptbB1yrSOA=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/JF_275489_ChefJohnsAmericanGoulash_2x1_13360-6c27f74548da436cac83d158216a7380.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/275489/chef-johns-american-goulash/",
@@ -713,10 +867,18 @@
       "Dotdash Meredith Food Studios",
       "Make your own Italian herb mix with a blend of oregano, thyme, rosemary, sage, parsley, and basil.",
       "You can use sweet Spanish paprika if you can't find Hungarian paprika. You can also add beans to turn this into an excellent pasta fazool."
-    ]
+    ],
+    "cuisine": [
+      "U.S.",
+      "American"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "d1a7f86c-956c-4d6b-a7b2-ef988232e59d",
+    "id": "add0d217-dd9b-4634-ac46-59a24363d474",
     "title": "The Best Baked Rice and Beans",
     "image": "https://www.allrecipes.com/thmb/N_mk58CyTcSHvpXdvbj0QLbpMCE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/7831733-d226c8a92c024801a335c0ac1acf784d.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/279361/the-best-baked-rice-and-beans/",
@@ -739,10 +901,17 @@
       "Bake in the preheated oven until rice is tender, about 1 hour and 10 minutes. Remove the foil; taste and adjust seasoning if necessary. Fluff with a fork and serve hot.",
       "You can use any long-grain white rice for basmati, paprika for chili powder, melted butter for olive oil, water for chicken broth, and any type of canned beans — pintos would be great, as would black beans.",
       "Once you unwrap the dish from the oven, make sure the rice is fully cooked before fluffing it with a fork. If it's not, re-cover and continue baking until tender."
-    ]
+    ],
+    "cuisine": [
+      "Mexican"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "d22d6863-6dd3-4ec6-a677-80035f768915",
+    "id": "850c64f4-4e35-4a59-b876-4cc68d843cf7",
     "title": "Easy Shrimp Fried Rice",
     "image": "https://www.allrecipes.com/thmb/wJqolr02hebA2hlzhTYoUhZewtw=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/272834easy-homemade-shrimp-fried-ricefabeveryday2x1-9040d8efe3d04cfe91147fbeef49b0a8.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/272834/easy-homemade-shrimp-fried-rice/",
@@ -765,10 +934,18 @@
       "Remove shrimp from the skillet using a slotted spoon, allowing oils and cooking juices to remain in the skillet. Place shrimp on a plate and set aside.",
       "Add peas and carrots and corn to the skillet and cook, stirring intermittently, until vegetables begin to soften, about 2 minutes. Add garlic; cook and stir for 1 minute. Push vegetables to the side of the skillet, pour eggs into the other side, and cook to scramble, stirring as necessary, 3 to 4 minutes.",
       "Stir shrimp, rice, and green onions into the skillet. Drizzle evenly with soy sauce, season with salt and pepper, and stir to combine. Cook until shrimp is reheated through, about 2 minutes."
-    ]
+    ],
+    "cuisine": [
+      "Asian Inspired",
+      "Asian"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   },
   {
-    "id": "da8e728f-85dd-492c-810a-4fb5ecde9710",
+    "id": "c29e70bf-c954-49be-8e22-9c2411ce5f7a",
     "title": "Dirty, Dirty Rice",
     "image": "https://www.allrecipes.com/thmb/78znZkTe1q8RKm_pucEYMYBAA1M=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/276821-Dirty-Dirty-Rice-ddmfs-2x1-091-a5d41cc02f7746dc8c2d8def1f41837f.jpg",
     "sourceUrl": "https://www.allrecipes.com/recipe/276821/dirty-dirty-rice/",
@@ -815,6 +992,13 @@
       "Taste for seasoning and discard bay leaf before serving.",
       "Dotdash Meredith Food Studios",
       "You can substitute jalapeños for the bell peppers, fresh garlic for the garlic powder, and any type of broth for the chicken broth."
-    ]
+    ],
+    "cuisine": [
+      "Southern"
+    ],
+    "category": [
+      "Dinner"
+    ],
+    "diet": null
   }
 ]

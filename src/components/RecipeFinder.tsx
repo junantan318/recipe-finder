@@ -10,7 +10,6 @@ import Fuse from "fuse.js";
 
 
 
-
 // ✅ Define a TypeScript interface for recipes
 interface Recipe {
   id: string;
@@ -18,8 +17,12 @@ interface Recipe {
   image: string;
   sourceUrl: string;
   ingredients: string[];
-  usesExpiring?: boolean; // optional
+  cuisine?: string;
+  category?: string;
+  diet?: string;
+  usesExpiring?: boolean;
 }
+
 
 
 export default function RecipeFinder() {
@@ -79,18 +82,129 @@ export default function RecipeFinder() {
   const [showingFavorites, setShowingFavorites] = useState(false);
   const [favorites, setFavorites] = useState<Recipe[]>([]);
   const [closingProfile, setClosingProfile] = useState(false);
+  const [filterFavorites, setFilterFavorites] = useState(false);
 
-  const looselyMatches = (a: string, b: string) => {
-    const normA = a.trim().toLowerCase();
-    const normB = b.trim().toLowerCase();
-    return (
-      normA === normB ||
-      normA.includes(normB + " ") ||
-      normA.includes(" " + normB) ||
-      normB.includes(normA + " ") ||
-      normB.includes(" " + normA)
+
+  const filteredRecipes = recipes.filter((recipe) => {
+    const excludedIngredient = exclude.split("-")[0].toLowerCase();
+  
+    const matchesIngredients =
+    savedIngredients.length === 0 ||
+    (Array.isArray(recipe.ingredients) &&
+      savedIngredients.some((ingredient) =>
+        recipe.ingredients.some((ing) =>
+          ing.toLowerCase().includes(ingredient.name.toLowerCase())
+        )
+      ));
+  
+  
+    const matchesDiet = !diet || (
+      Array.isArray(recipe.diet)
+        ? recipe.diet.some(d => d.toLowerCase().includes(diet.toLowerCase()))
+        : typeof recipe.diet === "string" &&
+          recipe.diet.toLowerCase().includes(diet.toLowerCase())
     );
-  };
+  
+    const matchesCategory = !type || (
+      Array.isArray(recipe.category)
+        ? recipe.category.some(c => c.toLowerCase().includes(type.toLowerCase()))
+        : typeof recipe.category === "string" &&
+          recipe.category.toLowerCase().includes(type.toLowerCase())
+    );
+  
+    const matchesTags = !tags || (
+      Array.isArray(recipe.cuisine)
+        ? recipe.cuisine.some(c => c.toLowerCase().includes(tags.toLowerCase()))
+        : typeof recipe.cuisine === "string" &&
+          recipe.cuisine.toLowerCase().includes(tags.toLowerCase())
+    );
+  
+    const doesNotContainExcluded =
+      !exclude ||
+      !recipe.ingredients.some((ing) =>
+        ing.toLowerCase().includes(excludedIngredient)
+      );
+  
+    return (
+      matchesIngredients &&
+      matchesDiet &&
+      matchesCategory &&
+      matchesTags &&
+      doesNotContainExcluded
+    );
+  });
+  
+  
+  const displayedRecipes = showingFavorites
+  ? (filterFavorites
+      ? favorites.filter((recipe) => {
+          const excludedIngredient = exclude.split("-")[0].toLowerCase();
+
+          const matchesIngredients =
+            savedIngredients.length === 0 ||
+            (Array.isArray(recipe.ingredients) &&
+              savedIngredients.some((ingredient) =>
+                recipe.ingredients.some((ing) =>
+                  ing.toLowerCase().includes(ingredient.name.toLowerCase())
+                )
+              ));
+
+          const matchesDiet = !diet || (
+            Array.isArray(recipe.diet)
+              ? recipe.diet.some((d) =>
+                  d.toLowerCase().includes(diet.toLowerCase())
+                )
+              : typeof recipe.diet === "string" &&
+                recipe.diet.toLowerCase().includes(diet.toLowerCase())
+          );
+
+          const matchesCategory = !type || (
+            Array.isArray(recipe.category)
+              ? recipe.category.some((c) =>
+                  c.toLowerCase().includes(type.toLowerCase())
+                )
+              : typeof recipe.category === "string" &&
+                recipe.category.toLowerCase().includes(type.toLowerCase())
+          );
+
+          const matchesTags = !tags || (
+            Array.isArray(recipe.cuisine)
+              ? recipe.cuisine.some((c) =>
+                  c.toLowerCase().includes(tags.toLowerCase())
+                )
+              : typeof recipe.cuisine === "string" &&
+                recipe.cuisine.toLowerCase().includes(tags.toLowerCase())
+          );
+
+          const doesNotContainExcluded =
+            !exclude ||
+            (Array.isArray(recipe.ingredients) &&
+              !recipe.ingredients.some((ing) =>
+                ing.toLowerCase().includes(excludedIngredient)
+              ));
+
+          return (
+            matchesIngredients &&
+            matchesDiet &&
+            matchesCategory &&
+            matchesTags &&
+            doesNotContainExcluded
+          );
+        })
+      : favorites)
+  : filteredRecipes;
+
+
+
+
+
+const sortedRecipes = prioritizeExpiring
+  ? [...displayedRecipes].sort(
+      (a, b) => (b.usesExpiring ? 1 : 0) - (a.usesExpiring ? 1 : 0)
+    )
+  : displayedRecipes;
+
+  
   
 
   const knownIngredients = [
@@ -98,12 +212,6 @@ export default function RecipeFinder() {
     "cheese", "lettuce", "tomato", "beef", "spinach",
   ];
 
-
-  
-
-
-
-  
   // Add useEffect hook to set body and html to fullscreen
   useEffect(() => {
     // Remove default margins and padding from body and html
@@ -174,7 +282,7 @@ export default function RecipeFinder() {
   
 
   const handleSaveFavorite = () => {
-    if (!openRecipe?.ingredients?.length) {
+    if (!openRecipe?.ingredients || !Array.isArray(openRecipe.ingredients) || openRecipe.ingredients.length === 0) {
       alert("⚠️ Please open the recipe first to load ingredients.");
       return;
     }
@@ -207,54 +315,48 @@ export default function RecipeFinder() {
   }, []);
   
   const saveFavorite = async (recipe: Recipe) => {
-    if (!recipe.ingredients || recipe.ingredients.length === 0) {
-      console.warn("Skipping save — recipe has no ingredients.");
+    const token = localStorage.getItem("token");
+  
+    const fullRecipe = recipe;
+  
+    if (!Array.isArray(fullRecipe.ingredients) || fullRecipe.ingredients.length === 0) {
+      alert("⚠️ This recipe does not include ingredients and cannot be saved.");
       return;
     }
   
-    const token = localStorage.getItem("token");
-  
-    // ✅ Prevent duplicate save
-    const alreadySaved = favorites.some((fav) => fav.id === recipe.id);
+    const alreadySaved = favorites.some((fav) => fav.id === fullRecipe.id);
     if (alreadySaved) {
       alert("⚠️ You've already favorited this recipe.");
       return;
     }
   
-    const res = await fetch("/api/favorites", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        id: recipe.id,
-        title: recipe.title,
-        image: recipe.image,
-        sourceUrl: recipe.sourceUrl,
-        ingredients: recipe.ingredients,
-      }),
+    try {
       
-    });
+      const saveRes = await fetch("/api/favorites", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(fullRecipe),
+      });
   
-    if (res.ok) {
-      const result = await res.json();
-  
-      if (result.message === "Recipe already favorited") {
-        alert("⚠️ You've already favorited this recipe.");
-      } else {
+      if (saveRes.ok) {
         alert("✅ Recipe saved to favorites!");
-        if (showingFavorites) {
-          setFavorites((prev) => [...prev, recipe]);
-        }
+        setFavorites((prev) =>
+          prev.some((fav) => fav.id === fullRecipe.id)
+            ? prev
+            : [...prev, fullRecipe]
+        );
+        setOpenRecipe(fullRecipe);
+      } else {
+        alert("❌ Failed to save. Please try again.");
       }
-    } else {
-      alert("❌ Failed to save. Please try again.");
+    } catch (error) {
+      console.error("🚨 Failed to save favorite:", error);
+      alert("❌ Something went wrong trying to save this recipe.");
     }
   };
-  
-  
-  
   
   // ✅ Fetch Recipes from API
   const fetchRecipes = async () => {
@@ -273,11 +375,18 @@ export default function RecipeFinder() {
   
       const updatedRecipes = data.map((recipe: Recipe) => ({
         ...recipe,
-        usesExpiring: recipe.ingredients.some((ing) =>
-          savedIngredients.some((i) =>
+        usesExpiring: recipe.ingredients.some((ing) => {
+          const match = savedIngredients.find((i) =>
             ing.toLowerCase().includes(i.name.toLowerCase())
-          )
-        ),
+          );
+          if (!match) return false;
+        
+          const today = new Date();
+          const expiry = new Date(match.expires);
+          const isToday = expiry.toDateString() === today.toDateString();
+          return expiry < today || isToday;
+        }),
+        
       }));
   
       setRecipes(updatedRecipes);
@@ -428,34 +537,7 @@ export default function RecipeFinder() {
     }
   };
   
-  
-  
-const getRecipeFreshness = (recipe: Recipe): string => {
-  const today = new Date();
-  let hasExpired = false;
-  let hasExpiringSoon = false;
 
-  for (const ing of recipe.ingredients) {
-    const match = savedIngredients.find(i => i.name.toLowerCase() === ing.toLowerCase());
-    if (match) {
-      const expiry = new Date(match.expires);
-      const isToday = expiry.toDateString() === today.toDateString();
-      let color = "bg-green-500", text = "Fresh";
-      if (expiry < today && !isToday) {
-        color = "bg-red-500";
-        text = "Expired";
-      } else if (isToday) {
-        color = "bg-yellow-400";
-        text = "Nearly Expired";
-      }
-      
-    }
-  }
-
-  if (hasExpired) return "expired";
-  if (hasExpiringSoon) return "expiring";
-  return "fresh";
-};
 
 
 return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
@@ -539,38 +621,58 @@ return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-h
         <button
 onClick={async () => {
   setShowingFavorites(true);
+
   const token = localStorage.getItem("token");
   const res = await fetch("/api/favorites", {
     headers: { Authorization: `Bearer ${token}` },
   });
+
   if (res.ok) {
     const result = await res.json();
     const data = Array.isArray(result) ? result : result.favorites || [];
-    
-    const recipeIds = data.map((fav: { id: string }) => fav.id);
-    
-    const res2 = await fetch("/api/recipes", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ids: recipeIds }),
+
+    // Add `usesExpiring` flag like in fetchRecipes()
+    const enhanced = data
+    .filter((recipe: any) => recipe) // only drop null/undefined
+    .map((recipe: Recipe) => {
+      const safeIngredients = Array.isArray(recipe.ingredients)
+        ? recipe.ingredients
+        : [];
+  
+      const usesExpiring = safeIngredients.some((ing) => {
+        const match = savedIngredients.find((i) =>
+          ing.toLowerCase().includes(i.name.toLowerCase())
+        );
+        if (!match) return false;
+  
+        const today = new Date();
+        const expiry = new Date(match.expires);
+        const isToday = expiry.toDateString() === today.toDateString();
+        return expiry < today || isToday;
+      });
+  
+      return {
+        ...recipe,
+        ingredients: safeIngredients,
+        usesExpiring,
+      };
     });
-    
-    if (res2.ok) {
-      const recipes = await res2.json();
-      setFavorites(recipes);
-    } else {
-      console.error("❌ Failed to fetch recipe details.");
-    }
+  
+  
     
     
 
+    setFavorites(enhanced);
+  } else if (res.status === 401) {
+    alert("Session expired. Please log in again.");
+    localStorage.removeItem("token");
+    setShowLogin(true);
   } else {
-    console.error("Failed to load favorites.");
+    console.error("❌ Failed to load favorites.");
   }
 }}
 
+  
   className="inline-flex items-center bg-white text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg transition-colors"
 >
   ❤️ My Favorites
@@ -787,44 +889,57 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
           {/* Filters Section - Now full width and more compact */}
           {!showingFavorites && (
   <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-      <select
-        value={diet}
-        onChange={(e) => setDiet(e.target.value)}
-        className="border border-gray-300 p-2 rounded-lg text-sm w-full"
-      >
-        <option value="">Any Diet</option>
-        <option value="vegetarian">Vegetarian</option>
-        <option value="vegan">Vegan</option>
-        <option value="gluten_free">Gluten Free</option>
-      </select>
+<div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+  {/* Diet */}
+  <select
+    value={diet}
+    onChange={(e) => setDiet(e.target.value)}
+    className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+  >
+    <option value="">Any Diet</option>
+    <option value="low calorie">Low Calorie</option>
+    <option value="low fat">Low Fat</option>
+    <option value="low sodium">Low Sodium</option>
+    <option value="gluten free">Gluten Free</option>
+    <option value="vegan">Vegan</option>
+    <option value="vegetarian">Vegetarian</option>
+  </select>
 
-      <select
-        value={type}
-        onChange={(e) => setType(e.target.value)}
-        className="border border-gray-300 p-2 rounded-lg text-sm w-full"
-      >
-        <option value="">Any Type</option>
-        <option value="breakfast">Breakfast</option>
-        <option value="lunch">Lunch</option>
-        <option value="dinner">Dinner</option>
-        <option value="snack">Snack</option>
-        <option value="dessert">Dessert</option>
-      </select>
+  {/* Category (type) */}
+  <select
+    value={type}
+    onChange={(e) => setType(e.target.value)}
+    className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+  >
+    <option value="">Any Category</option>
+    <option value="appetizer">Appetizer</option>
+    <option value="main course">Main Course</option>
+    <option value="dessert">Dessert</option>
+    <option value="snack">Snack</option>
+    <option value="breakfast">Breakfast</option>
+    <option value="brunch">Brunch</option>
+    <option value="dinner">Dinner</option>
+  </select>
 
-      <select
-        value={tags}
-        onChange={(e) => setTags(e.target.value)}
-        className="border border-gray-300 p-2 rounded-lg text-sm w-full"
-      >
-        <option value="">Any Theme</option>
-        <option value="under_30_minutes">Under 30 Minutes</option>
-        <option value="easy">Easy</option>
-        <option value="healthy">Healthy</option>
-      </select>
+  {/* Cuisine (previously tags) */}
+  <select
+    value={tags}
+    onChange={(e) => setTags(e.target.value)}
+    className="border border-gray-300 p-2 rounded-lg text-sm w-full"
+  >
+    <option value="">Any Cuisine</option>
+    <option value="italian">Italian</option>
+    <option value="mexican">Mexican</option>
+    <option value="indian">Indian</option>
+    <option value="thai">Thai</option>
+    <option value="chinese">Chinese</option>
+    <option value="french">French</option>
+    <option value="mediterranean">Mediterranean</option>
+  </select>
 
-      <ExcludeDropdown />
-    </div>
+  <ExcludeDropdown />
+</div>
+
 
     <div className="mt-2">
   <label className="inline-flex items-center">
@@ -869,7 +984,7 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
                 <p className="text-red-700">{error}</p>
               </div>
             )}
-            {showingFavorites && (
+{showingFavorites && (
   <div className="flex items-center justify-between mb-3 px-1">
     <button
       onClick={() => setShowingFavorites(false)}
@@ -878,62 +993,76 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
       <ArrowLeft className="w-4 h-4" />
       <span>Back</span>
     </button>
+    <label className="text-sm flex items-center space-x-2">
+      <input
+        type="checkbox"
+        checked={filterFavorites}
+        onChange={(e) => setFilterFavorites(e.target.checked)}
+      />
+      <span>Filter favorites with current fridge</span>
+    </label>
+
   </div>
 )}
 
 
-            {/* Recipe Results - Now using a more efficient grid layout */}
-            {(showingFavorites ? favorites : recipes).length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-fade-in">
 
-    {(showingFavorites ? favorites : recipes).map((recipe) => (
+            {/* Recipe Results*/}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-fade-in">
+  {sortedRecipes.map((recipe) => (
+    <div
+      key={recipe.id}
+      className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden border border-gray-200"
+    >
       <div
-        key={recipe.id}
-        className="bg-white rounded-xl shadow-md hover:shadow-lg transition cursor-pointer flex flex-col overflow-hidden border border-gray-200"
+        className="cursor-pointer h-full flex flex-col"
+        onClick={() => toggle(recipe)}
       >
-        <div
-          className="cursor-pointer h-full flex flex-col"
-          onClick={() => toggle(recipe)}
-        >
-          <div className="h-48 overflow-hidden">
-            <img
-              src={recipe.image}
-              alt={recipe.title}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="p-3 flex-1 flex flex-col">
+        <div className="h-48 overflow-hidden">
+          <img
+            src={recipe.image}
+            alt={recipe.title}
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <div className="p-3 flex-1 flex flex-col">
           <h3 className="text-md font-semibold text-gray-800 line-clamp-2">
-  {recipe.title}
-</h3>
+            {recipe.title}
+          </h3>
 
-{prioritizeExpiring && recipe.usesExpiring && (
-  <span className="inline-block mt-1 px-2 py-1 text-xs bg-yellow-500 text-white rounded-full">
-    🕒 Uses expiring ingredients
-  </span>
-)}
+          {prioritizeExpiring && recipe.usesExpiring && (
+            <span className="inline-block mt-1 px-2 py-1 text-xs bg-yellow-500 text-white rounded-full">
+              🕒 Uses expiring ingredients
+            </span>
+          )}
 
-            <div className="mt-2 text-xs text-gray-500">
-              {recipe.ingredients?.length ?? 0} ingredients
-            </div>
-            <button className="mt-auto text-sm text-blue-600">View Details →</button>
+          <div className="mt-2 text-xs text-gray-500">
+            {recipe.ingredients?.length ?? 0} ingredients
           </div>
+          <button className="mt-auto text-sm text-blue-600">View Details →</button>
         </div>
       </div>
-    ))}
+    </div>
+  ))}
+</div>
+
+
+            {/* Empty state for when no recipes have been searched yet */}
+            {sortedRecipes.length === 0 && !loading && !error && (
+  <div className="flex flex-col items-center justify-center h-64 text-center">
+    <div className="text-6xl mb-4">📭</div>
+    <h3 className="text-xl font-semibold text-gray-700 mb-2">
+      {showingFavorites ? "No favorites saved yet" : "No matching recipes found"}
+    </h3>
+    <p className="text-gray-500 max-w-md">
+      {showingFavorites
+        ? "Start saving recipes to see them here."
+        : "Try adding more ingredients to your fridge to unlock new recipe options."}
+    </p>
   </div>
 )}
 
-            {/* Empty state for when no recipes have been searched yet */}
-            {recipes.length === 0 && !loading && !error && (
-              <div className="flex flex-col items-center justify-center h-64 text-center">
-                <div className="text-6xl mb-4">🍳</div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">Ready to find recipes?</h3>
-                <p className="text-gray-500 max-w-md">
-        Add ingredients from your kitchen and click &#39;Find Recipes&#39; to discover meals you can make right now!
-      </p>
-              </div>
-            )}
+
             
             {/* Loading state */}
             {loading && (
@@ -982,21 +1111,24 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
                 <div className="space-y-4">
                   <h4 className="font-semibold text-lg text-gray-700">Ingredients</h4>
                   <div className="space-y-2">
-                    {openRecipe.ingredients.map((ing, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-{savedIngredients.some(i =>
-  ing.toLowerCase().includes(i.name.toLowerCase()) ||
-  i.name.toLowerCase().includes(ing.toLowerCase())
-) ? (
-  <span className="text-green-500">✓</span>
+                  {Array.isArray(openRecipe.ingredients) ? (
+  openRecipe.ingredients.map((ing, idx) => (
+    <div key={idx} className="flex items-center gap-2">
+      {savedIngredients.some(i =>
+        ing.toLowerCase().includes(i.name.toLowerCase()) ||
+        i.name.toLowerCase().includes(ing.toLowerCase())
+      ) ? (
+        <span className="text-green-500">✓</span>
+      ) : (
+        <span className="text-red-500">✗</span>
+      )}
+      <span>{ing}</span>
+    </div>
+  ))
 ) : (
-  <span className="text-red-500">✗</span>
+  <p className="text-gray-500 text-sm italic">No ingredients listed for this recipe.</p>
 )}
 
-
-                        <span>{ing}</span>
-                      </div>
-                    ))}
                   </div>
                 </div>
                 
@@ -1004,26 +1136,32 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
                   <h4 className="font-semibold text-lg text-gray-700">Summary</h4>
                   <p className="text-green-700 text-sm">
                     ✅ You have:{" "}
-                    {openRecipe.ingredients
-  .filter((ing) =>
-    savedIngredients.some(i =>
-      ing.toLowerCase().includes(i.name.toLowerCase()) ||
-      i.name.toLowerCase().includes(ing.toLowerCase())
-    )
-  )
-  .join(", ") || "None"}
+                    {Array.isArray(openRecipe.ingredients)
+  ? openRecipe.ingredients
+      .filter((ing) =>
+        savedIngredients.some(i =>
+          ing.toLowerCase().includes(i.name.toLowerCase()) ||
+          i.name.toLowerCase().includes(ing.toLowerCase())
+        )
+      )
+      .join(", ")
+  : "None"}
+
 
                   </p>
                   <p className="text-red-600 text-sm">
                     ❌ You need:{" "}
-                    {openRecipe.ingredients
-  .filter((ing) =>
-    !savedIngredients.some(i =>
-      ing.toLowerCase().includes(i.name.toLowerCase()) ||
-      i.name.toLowerCase().includes(ing.toLowerCase())
-    )
-  )
-  .join(", ") || "None"}
+                    {Array.isArray(openRecipe.ingredients)
+  ? openRecipe.ingredients
+      .filter((ing) =>
+        savedIngredients.some(i =>
+          ing.toLowerCase().includes(i.name.toLowerCase()) ||
+          i.name.toLowerCase().includes(ing.toLowerCase())
+        )
+      )
+      .join(", ")
+  : "None"}
+
 
                   </p>
                   
