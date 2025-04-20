@@ -1189,36 +1189,39 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
                 
                 <div className="space-y-4">
                   <h4 className="font-semibold text-lg text-gray-700">Summary</h4>
-                  <p className="text-green-700 text-sm">
-                    ✅ You have:{" "}
-                    {Array.isArray(openRecipe.ingredients)
-  ? openRecipe.ingredients
-      .filter((ing) =>
-        savedIngredients.some(i =>
-          ing.toLowerCase().includes(i.name.toLowerCase()) ||
-          i.name.toLowerCase().includes(ing.toLowerCase())
-        )
-      )
-      .join(", ")
-  : "None"}
+                  <div className="space-y-1">
+  {Array.isArray(openRecipe.ingredients) && savedIngredients.length > 0 ? (
+    <>
+      <p className="text-green-700 text-sm">
+        ✅ You have:{" "}
+        {openRecipe.ingredients
+          .filter((ing) =>
+            savedIngredients.some((i) =>
+              ing.toLowerCase().includes(i.name.toLowerCase())
+            )
+          )
+          .join(", ") || "None"}
+      </p>
 
+      <p className="text-red-600 text-sm">
+        ❌ You need:{" "}
+        {openRecipe.ingredients
+          .filter((ing) =>
+            !savedIngredients.some((i) =>
+              ing.toLowerCase().includes(i.name.toLowerCase())
+            )
+          )
+          .join(", ") || "None"}
+      </p>
+    </>
+  ) : (
+    <>
+      <p className="text-green-700 text-sm">✅ You have: None</p>
+      <p className="text-red-600 text-sm">❌ You need: All ingredients</p>
+    </>
+  )}
+</div>
 
-                  </p>
-                  <p className="text-red-600 text-sm">
-                    ❌ You need:{" "}
-                    {Array.isArray(openRecipe.ingredients)
-  ? openRecipe.ingredients
-      .filter((ing) =>
-        savedIngredients.some(i =>
-          ing.toLowerCase().includes(i.name.toLowerCase()) ||
-          i.name.toLowerCase().includes(ing.toLowerCase())
-        )
-      )
-      .join(", ")
-  : "None"}
-
-
-                  </p>
                   
                   <div className="flex flex-wrap gap-2 mt-4">
                     <a
@@ -1250,7 +1253,7 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
   >
     ❤️ Save to Favorites
   </button>
-)};
+)}
 
 
 
