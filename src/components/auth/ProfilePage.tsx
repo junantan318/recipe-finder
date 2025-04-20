@@ -6,11 +6,14 @@ export default function ProfilePage({
   onClose,
   onSignInClick,
   onRegisterClick,
+  onLogoutSuccess,
 }: {
   onClose?: () => void;
   onSignInClick?: () => void;
   onRegisterClick?: () => void;
+  onLogoutSuccess?: () => void;
 }) {
+
   const [email, setEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,11 +25,10 @@ export default function ProfilePage({
     localStorage.removeItem('token');
     localStorage.removeItem('email');
   
-    // Close profile drawer, then open login drawer if available
+    if (onLogoutSuccess) onLogoutSuccess();
     if (onClose) onClose();
     if (onSignInClick) onSignInClick();
   };
-  
 
   return (
     <div className="p-6">

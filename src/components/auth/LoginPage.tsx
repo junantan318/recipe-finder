@@ -6,7 +6,16 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 
-export default function Login({ onClose, onRegisterClick }: { onClose?: () => void; onRegisterClick?: () => void }) {
+export default function Login({
+  onClose,
+  onRegisterClick,
+  onLoginSuccess, // ✅ new prop
+}: {
+  onClose?: () => void;
+  onRegisterClick?: () => void;
+  onLoginSuccess?: () => void; // ✅
+}) {
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
@@ -27,7 +36,6 @@ export default function Login({ onClose, onRegisterClick }: { onClose?: () => vo
       console.log("🧾 Login response:", data);
   
       if (!res.ok) {
-        // 🔽 Check for invalid credentials
         if (res.status === 401) {
           setMsg("Incorrect email or password");
         } else {
@@ -36,17 +44,21 @@ export default function Login({ onClose, onRegisterClick }: { onClose?: () => vo
         return;
       }
   
+      // ✅ Success path
       localStorage.setItem('token', data.token);
       localStorage.setItem('email', email);
-      login(); // Update context
+      login(); // Update auth context
       setMsg("✅ Logged in!");
-      if (onClose) onClose();  // ✅ Close drawer
+  
+      if (onClose) onClose();
+      if (onLoginSuccess) onLoginSuccess(); // ✅ trigger data refresh
       router.push('/');
     } catch (err) {
       console.error("Login error:", err);
       setMsg("Something went wrong");
     }
   };
+  
   
   
   return (

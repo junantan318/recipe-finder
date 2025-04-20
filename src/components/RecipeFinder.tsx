@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  useState,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+  ForwardedRef,
+} from "react";
 import { Search, Trash2, PlusCircle, XCircle, Loader } from "lucide-react";
 import ProfilePage from "@/components/auth/ProfilePage";
 import LoginPage from "@/components/auth/LoginPage";
@@ -8,9 +14,6 @@ import RegisterPage from "@/components/auth/RegisterPage";
 import { ArrowLeft } from "lucide-react";
 import Fuse from "fuse.js";
 
-
-
-// ✅ Define a TypeScript interface for recipes
 interface Recipe {
   id: string;
   title: string;
@@ -23,10 +26,22 @@ interface Recipe {
   usesExpiring?: boolean;
 }
 
+type IngredientEntry = {
+  name: string;
+  expires: string;
+};
 
+interface RecipeFinderProps {
+  onLoginSuccess?: () => void;
+  onLogoutSuccess?: () => void;
+}
 
-export default function RecipeFinder() {
-  const [query, setQuery] = useState("");
+// ✅ 👇 START the component using forwardRef
+const RecipeFinder = forwardRef(function RecipeFinder(
+  _props: RecipeFinderProps,
+  ref: ForwardedRef<any>
+) {
+
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -36,7 +51,7 @@ export default function RecipeFinder() {
     name: string;
     expires: string; // ISO date string
   };
-  
+
   const [savedIngredients, setSavedIngredients] = useState<IngredientEntry[]>([]);
 
   {savedIngredients.map((item, idx) => {
@@ -84,6 +99,40 @@ export default function RecipeFinder() {
   const [closingProfile, setClosingProfile] = useState(false);
   const [filterFavorites, setFilterFavorites] = useState(false);
 
+  const refreshData = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+  
+    try {
+      // Re-fetch ingredients
+      const ingRes = await fetch("/api/ingredients", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const ingredients = await ingRes.json();
+      setSavedIngredients(Array.isArray(ingredients) ? ingredients : []);
+  
+      // Re-fetch favorites
+      const favRes = await fetch("/api/favorites", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await favRes.json();
+      const data = Array.isArray(result) ? result : result.favorites || [];
+  
+      const enhanced = data.map((recipe: Recipe) => ({
+        ...recipe,
+        ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+        usesExpiring: recipe.ingredients?.some((ing: string) =>
+          ingredients.some((i: any) =>
+            ing.toLowerCase().includes(i.name.toLowerCase())
+          )
+        )
+      }));
+  
+      setFavorites(enhanced);
+    } catch (err) {
+      console.error("🔄 Refresh error:", err);
+    }
+  }; 
 
   const filteredRecipes = recipes.filter((recipe) => {
     const excludedIngredient = exclude.split("-")[0].toLowerCase();
@@ -545,9 +594,6 @@ const sortedRecipes = prioritizeExpiring
       console.error("🚨 Remove error:", err);
     }
   };
-  
-
-
 
 return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-hidden bg-white">
 {showProfile && (
@@ -564,17 +610,19 @@ return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-h
       >
         ✖
       </button>
+
       <ProfilePage
-        onClose={() => setShowProfile(false)}
-        onSignInClick={() => {
-          setShowProfile(false);
-          setShowLogin(true);
-        }}
-        onRegisterClick={() => {
-          setShowProfile(false);
-          setShowRegister(true);
-        }}
-      />
+  onClose={() => setShowProfile(false)}
+  onSignInClick={() => {
+    setShowProfile(false);
+    setShowLogin(true);
+  }}
+  onRegisterClick={() => {
+    setShowProfile(false);
+    setShowRegister(true);
+  }}
+  onLogoutSuccess={refreshData} // ✅
+/>
     </div>
   </div>
 )}
@@ -589,12 +637,14 @@ return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-h
         ✖
       </button>
       <LoginPage
-        onClose={() => setShowLogin(false)}
-        onRegisterClick={() => {
-          setShowLogin(false);
-          setShowRegister(true);
-        }}
-      />
+  onClose={() => setShowLogin(false)}
+  onRegisterClick={() => {
+    setShowLogin(false);
+    setShowRegister(true);
+  }}
+  onLoginSuccess={refreshData} // ✅
+/>
+
     </div>
   </div>
 )}
@@ -666,10 +716,6 @@ onClick={async () => {
         usesExpiring,
       };
     });
-  
-  
-    
-    
 
     setFavorites(enhanced);
   } else if (res.status === 401) {
@@ -1204,7 +1250,8 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
   >
     ❤️ Save to Favorites
   </button>
-)}
+)};
+
 
 
                   </div>
@@ -1216,4 +1263,6 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
       )}
     </div>
   );
-}
+});
+
+export default RecipeFinder;
