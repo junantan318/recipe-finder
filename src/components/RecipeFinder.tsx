@@ -94,10 +94,13 @@ const RecipeFinder = forwardRef(function RecipeFinder(
   const [showProfile, setShowProfile] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
-  const [showingFavorites, setShowingFavorites] = useState(false);
   const [favorites, setFavorites] = useState<Recipe[]>([]);
   const [closingProfile, setClosingProfile] = useState(false);
   const [filterFavorites, setFilterFavorites] = useState(false);
+  const [showingAIChat, setShowingAIChat] = useState(false);
+  const [activeView, setActiveView] = useState<"default" | "favorites" | "ai">("default");
+
+
 
   const refreshData = async () => {
     const token = localStorage.getItem("token");
@@ -184,7 +187,7 @@ const RecipeFinder = forwardRef(function RecipeFinder(
   });
   
   
-  const displayedRecipes = showingFavorites
+  const displayedRecipes = activeView === "favorites"
   ? (filterFavorites
       ? favorites.filter((recipe) => {
           const excludedIngredient = exclude.split("-")[0].toLowerCase();
@@ -679,7 +682,7 @@ return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-h
 
         <button
 onClick={async () => {
-  setShowingFavorites(true);
+  setActiveView("favorites");
 
   const token = localStorage.getItem("token");
   const res = await fetch("/api/favorites", {
@@ -732,6 +735,16 @@ onClick={async () => {
 >
   ❤️ My Favorites
 </button>
+
+<button
+  onClick={() => {
+    setActiveView("ai");
+  }}
+  className="inline-flex items-center bg-white text-purple-700 hover:bg-purple-100 px-4 py-2 rounded-lg transition-colors"
+>
+  🧠 AI Chat
+</button>
+
 
           <button
     onClick={() => setShowProfile(true)}
@@ -942,7 +955,7 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
 
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Filters Section - Now full width and more compact */}
-          {!showingFavorites && (
+          {activeView === "default" && (
   <div className="bg-gray-50 p-4 rounded-lg shadow-sm">
 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
   {/* Diet */}
@@ -1033,16 +1046,31 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
 
           {/* Main scrollable content area */}
           <div className="flex-1 overflow-y-auto p-4">
+  {activeView === "ai" ? (
+    <>
+      <button
+        onClick={() => 	setActiveView("default")}
+        className="text-blue-600 hover:underline flex items-center mb-4"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1" />
+        Back to Recipes
+      </button>
+      <div className="text-gray-500 text-center mt-10">
+        👋 AI Chatroom coming soon!
+      </div>
+    </>
+  ) : (
+    <>
             {/* Display Error Message */}
             {error && (
               <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded">
                 <p className="text-red-700">{error}</p>
               </div>
             )}
-{showingFavorites && (
+{activeView === "favorites" && (
   <div className="flex items-center justify-between mb-3 px-1">
     <button
-      onClick={() => setShowingFavorites(false)}
+      onClick={() => setActiveView("default")}
       className="text-sm text-gray-600 hover:text-blue-600 flex items-center space-x-1"
     >
       <ArrowLeft className="w-4 h-4" />
@@ -1107,10 +1135,10 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
   <div className="flex flex-col items-center justify-center h-64 text-center">
     <div className="text-6xl mb-4">📭</div>
     <h3 className="text-xl font-semibold text-gray-700 mb-2">
-      {showingFavorites ? "No favorites saved yet" : "No matching recipes found"}
+      {activeView === "favorites" ? "No favorites saved yet" : "No matching recipes found"}
     </h3>
     <p className="text-gray-500 max-w-md">
-      {showingFavorites
+      {activeView === "favorites"
         ? "Start saving recipes to see them here."
         : "Try adding more ingredients to your fridge to unlock new recipe options."}
     </p>
@@ -1128,8 +1156,10 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
                 </div>
               </div>
             )}
+                </>
+  )}
+</div>
           </div>
-        </div>
       </div>
 
       {/* Expanded Recipe Details */}
@@ -1232,7 +1262,7 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
                     >
                       View Full Recipe
                     </a>
-                    {showingFavorites ? (
+                    {activeView === "favorites" ? (
   <button
     onClick={() => removeFavorite(openRecipe.id)}
     className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
