@@ -461,13 +461,21 @@ const sortedRecipes = prioritizeExpiring
   const clearIngredients = async () => {
     try {
       setSavedIngredients([]); // clear local state
-
+  
       console.log("🧹 Clearing ingredients...");
+  
+      const token = localStorage.getItem("token");
       const response = await fetch("/api/ingredients", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ MUST include token
+        },
         body: JSON.stringify({ ingredients: [] }),
       });
+  
+      const result = await response.json();
+      console.log("🧾 Clear result:", result);
   
       if (!response.ok) {
         throw new Error("Failed to update saved ingredients in the database.");
@@ -478,6 +486,7 @@ const sortedRecipes = prioritizeExpiring
       console.error("🚨 Failed to clear ingredients:", err);
     }
   };
+  
   
   // ✅ Function to ask AI (Cohere) for a recommended recipe
   const askAiForRecipe = async () => {

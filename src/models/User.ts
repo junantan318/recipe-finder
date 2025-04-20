@@ -3,7 +3,12 @@ import mongoose from 'mongoose';
 const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: String,
-  savedIngredients: [String],
+  ingredients: [
+    {
+      name: { type: String, required: true },
+      expires: { type: String, required: true }
+    }
+  ],
   favorites: [
     {
       id: String,

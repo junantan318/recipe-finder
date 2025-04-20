@@ -1,48 +1,96 @@
-import { NextRequest, NextResponse } from "next/server";
-import dbConnect from "@/lib/db";
-import Ingredient from "@/models/Ingredient";
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import dbConnect from '@/lib/db';
+import User from '@/models/User';
 
-export async function GET() {
-  await dbConnect();
-  const ingredients = await Ingredient.find();
-  return NextResponse.json(ingredients);
+const JWT_SECRET = process.env.JWT_SECRET!;
+
+function verifyToken(token: string) {
+  return jwt.verify(token, JWT_SECRET) as { email: string };
 }
 
-export async function POST(request: NextRequest) {
+// ✅ GET: return ingredients for logged-in user
+export async function GET(req: NextRequest) {
   await dbConnect();
-  const body = await request.json();
-  await Ingredient.create(body);
+  const token = req.headers.get("authorization")?.split(" ")[1];
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { email } = verifyToken(token);
+  const user = await User.findOne({ email });
+  return NextResponse.json(user?.ingredients || []);
+}
+
+// ✅ POST: add a new ingredient
+export async function POST(req: NextRequest) {
+  await dbConnect();
+  const token = req.headers.get("authorization")?.split(" ")[1];
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { email } = verifyToken(token);
+  const { name, expires } = await req.json();
+
+  if (!name || !expires) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+  }
+
+  const user = await User.findOne({ email });
+  user.ingredients.push({ name, expires });
+  await user.save();
+
   return NextResponse.json({ message: "Ingredient added" });
 }
 
-export async function PUT(request: NextRequest) {
-  await dbConnect();
-  const body = await request.json();
-  console.log("🧾 PUT body:", body);
+// ✅ PUT: replace entire ingredients list
+export async function PUT(req: NextRequest) {
+  try {
+    await dbConnect();
 
-  if (!Array.isArray(body.ingredients)) {
-    return NextResponse.json({ error: "Invalid format" }, { status: 400 });
+    const token = req.headers.get("authorization")?.split(" ")[1];
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const email = (decoded as jwt.JwtPayload).email;
+
+    if (!email) {
+      return NextResponse.json({ error: "Token missing email" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    console.log("🧾 PUT body:", body);
+
+    if (!Array.isArray(body.ingredients)) {
+      return NextResponse.json({ error: "Invalid format" }, { status: 400 });
+    }
+
+    // ✅ Overwrite the ingredients for this user
+    const update = await User.updateOne(
+      { email },
+      { ingredients: body.ingredients }
+    );
+
+    console.log("✅ Updated user ingredients:", update.modifiedCount);
+    return NextResponse.json({ message: "Ingredients cleared" });
+  } catch (err) {
+    console.error("🚨 PUT error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  const result = await Ingredient.deleteMany({});
-  console.log("🧼 Deleted:", result.deletedCount);
-
-  if (body.ingredients.length > 0) {
-    const newDocs = body.ingredients;
-    await Ingredient.insertMany(newDocs);
-  }
-
-  return NextResponse.json({ message: "Ingredients updated successfully" });
 }
 
-export async function DELETE(request: NextRequest) {
+// ✅ DELETE: remove a single ingredient by name
+export async function DELETE(req: NextRequest) {
   await dbConnect();
-  const body = await request.json();
+  const token = req.headers.get("authorization")?.split(" ")[1];
+  if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!body.name) {
-    return NextResponse.json({ error: "Missing ingredient name" }, { status: 400 });
-  }
+  const { email } = verifyToken(token);
+  const { name } = await req.json();
 
-  const result = await Ingredient.deleteOne({ name: body.name });
-  return NextResponse.json({ message: "Deleted", deletedCount: result.deletedCount });
+  await User.updateOne(
+    { email },
+    { $pull: { ingredients: { name } } }
+  );
+
+  return NextResponse.json({ message: "Ingredient removed" });
 }

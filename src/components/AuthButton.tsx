@@ -9,7 +9,7 @@ export default function AuthButton() {
     <span className="text-gray-700">Logged in</span>
   ) : (
     <a href="/login" className="text-blue-600 hover:underline">
-      Login
+      Logins
     </a>
   );
 }
