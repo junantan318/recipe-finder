@@ -11,6 +11,7 @@ import { Search, Trash2, PlusCircle, XCircle, Loader } from "lucide-react";
 import ProfilePage from "@/components/auth/ProfilePage";
 import LoginPage from "@/components/auth/LoginPage";
 import RegisterPage from "@/components/auth/RegisterPage";
+import AIPage from "@/components/auth/AIPage";
 import { ArrowLeft } from "lucide-react";
 import Fuse from "fuse.js";
 
@@ -1055,9 +1056,8 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
         <ArrowLeft className="w-4 h-4 mr-1" />
         Back to Recipes
       </button>
-      <div className="text-gray-500 text-center mt-10">
-        👋 AI Chatroom coming soon!
-      </div>
+      <AIPage ingredients={savedIngredients} />
+
     </>
   ) : (
     <>

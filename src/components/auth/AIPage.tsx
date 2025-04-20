@@ -2,93 +2,114 @@
 import { useState } from 'react';
 import { Loader } from 'lucide-react';
 
+
 export default function AIPage({
   ingredients,
 }: {
   ingredients: { name: string; expires: string }[];
 }) {
-  const [aiRecipe, setAiRecipe] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [chatLog, setChatLog] = useState<{ user: string; ai: string }[]>([]);
   const [aiLoading, setAiLoading] = useState(false);
-  const [history, setHistory] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const askAiForRecipe = async () => {
-    if (ingredients.length === 0) {
-      setAiRecipe("Please add ingredients first!");
-      return;
-    }
 
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  const sendMessage = async (customMessage?: string) => {
+    if (!customMessage && ingredients.length === 0) return;
+  
+    const lowerCaseMessage = (customMessage || "").toLowerCase();
+    const wantsIngredients =
+      lowerCaseMessage.includes("my ingredients") ||
+      lowerCaseMessage.includes("ingredients i have") ||
+      lowerCaseMessage.includes("fridge") ||
+      lowerCaseMessage.includes("pantry");
+  
+    const payload =
+      customMessage && wantsIngredients
+        ? {
+            ingredients,
+            message: customMessage, // still pass it for context
+          }
+        : customMessage
+        ? { message: customMessage }
+        : { ingredients };
+  
+    const userMessage = customMessage || "Use My Ingredients";
+  
     setAiLoading(true);
-    setAiRecipe(null);
-
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-
+  
     try {
-        const response = await fetch(`${baseUrl}/api/chat`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ingredients }),
-          });
-          
-
-      if (!response.ok) {
-        throw new Error(`AI API error: \${response.status}`);
+      const res = await fetch(`${baseUrl}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
       }
-
-      const data = await response.json();
-      setAiRecipe(data.reply);
-      setHistory((prev) => [data.reply, ...prev]);
-    } catch (error) {
-      console.error("🚨 AI Fetch Error:", error);
-      setAiRecipe("Sorry, I couldn't generate a recipe.");
+  
+      const data = await res.json();
+      setChatLog((prev) => [...prev, { user: userMessage, ai: data.reply }]);
+      setMessage("");
+      setError(null);
+    } catch (e: any) {
+      console.error("AI Fetch Error:", e);
+      setError("❌ Something went wrong. Please try again.");
     } finally {
       setAiLoading(false);
     }
   };
+  
 
   return (
-    <div className="flex flex-col h-full p-6 bg-white overflow-hidden">
-      <div className="mb-4">
-      </div>
-
-      <div className="mb-4">
+    <div className="flex flex-col h-full p-6 bg-white">
+      <div className="flex items-center mb-4 gap-2">
+        <input
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          placeholder="Ask a recipe question..."
+          className="flex-1 border border-gray-300 px-3 py-2 rounded-lg text-sm"
+        />
         <button
-          onClick={askAiForRecipe}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center justify-center"
+          onClick={() => sendMessage(message)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
-          {aiLoading ? (
-            <>
-              <Loader className="w-5 h-5 animate-spin mr-2" />
-              Thinking...
-            </>
-          ) : (
-            "Ask AI for Recipe"
-          )}
+          Send
+        </button>
+        <button
+          onClick={() => sendMessage()}
+          className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+        >
+          Use My Ingredients
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4">
-        {aiRecipe && (
-          <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded text-sm text-gray-700 whitespace-pre-line">
-            <strong className="text-purple-700 block mb-1">Latest Suggestion:</strong>
-            {aiRecipe}
+        {chatLog.map((entry, i) => (
+          <div key={i} className="space-y-1">
+            <div className="text-right text-sm text-gray-700 font-medium">You: {entry.user}</div>
+            <div className="bg-gray-50 border-l-4 border-purple-500 p-3 rounded text-sm text-gray-700 whitespace-pre-line">
+              {entry.ai}
+            </div>
           </div>
-        )}
+        ))}
 
-        {history.length > 0 && (
-          <div className="mt-4">
-            <h3 className="font-semibold text-gray-700 mb-2">🕘 Chat History</h3>
-            <ul className="space-y-3 text-sm text-gray-700 max-h-48 overflow-y-auto">
-              {history.map((msg, idx) => (
-                <li
-                  key={idx}
-                  className="bg-gray-50 border border-gray-200 rounded p-3 whitespace-pre-line"
-                >
-                  {msg}
-                </li>
-              ))}
-            </ul>
+        {aiLoading && (
+          <div className="text-gray-500 text-sm flex items-center">
+            <Loader className="w-4 h-4 mr-2 animate-spin" />
+            Thinking...
           </div>
+          
         )}
+        {error && (
+  <div className="text-red-600 text-sm mt-4">
+    {error}
+  </div>
+)}
+
       </div>
     </div>
   );
