@@ -347,61 +347,84 @@ const sortedRecipes = prioritizeExpiring
     const token = localStorage.getItem("token");
     if (!token) return;
   
+    // Load ingredients
     fetch("/api/ingredients", {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(async (res) => {
-        if (!res.ok) throw new Error("Failed to fetch");
+        if (!res.ok) throw new Error("Failed to fetch ingredients");
         const data = await res.json();
-  
-        // Normalize to names if using Ingredient model
-        if (Array.isArray(data)) {
-          setSavedIngredients(data); // assumes API returns [{ name, expires }]
-        } else {
-          setSavedIngredients([]);
-        }
-        
+        setSavedIngredients(Array.isArray(data) ? data : []);
       })
       .catch((err) => {
         console.error("❌ Failed to load saved ingredients:", err);
       });
+  
+    // ✅ ALSO load favorites immediately on mount
+    fetch("/api/favorites", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch favorites");
+        const result = await res.json();
+        const data = Array.isArray(result) ? result : result.favorites || [];
+  
+        const enhanced = data.map((recipe: Recipe) => ({
+          ...recipe,
+          ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+        }));
+  
+        setFavorites(enhanced);
+      })
+      .catch((err) => {
+        console.error("❌ Failed to load favorites:", err);
+      });
   }, []);
+  
   
   const saveFavorite = async (recipe: Recipe) => {
     const token = localStorage.getItem("token");
   
-    const fullRecipe = recipe;
-  
-    if (!Array.isArray(fullRecipe.ingredients) || fullRecipe.ingredients.length === 0) {
+    if (!Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) {
       alert("⚠️ This recipe does not include ingredients and cannot be saved.");
       return;
     }
   
-    const alreadySaved = favorites.some((fav) => fav.id === fullRecipe.id);
+    // ✅ Check using current favorites
+    const alreadySaved = favorites.some((fav) => fav.id === recipe.id);
     if (alreadySaved) {
       alert("⚠️ You've already favorited this recipe.");
       return;
     }
   
     try {
-      
       const saveRes = await fetch("/api/favorites", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(fullRecipe),
+        body: JSON.stringify(recipe),
       });
   
       if (saveRes.ok) {
         alert("✅ Recipe saved to favorites!");
-        setFavorites((prev) =>
-          prev.some((fav) => fav.id === fullRecipe.id)
+  
+        // ✅ Force re-render (ensures isFavorited works immediately)
+        setFavorites((prev) => {
+          const updated = prev.some((fav) => fav.id === recipe.id)
             ? prev
-            : [...prev, fullRecipe]
-        );
-        setOpenRecipe(fullRecipe);
+            : [...prev, recipe];
+        
+          setOpenRecipe((prevRecipe) => {
+            if (!prevRecipe) return null;
+            return updated.find((r) => r.id === prevRecipe.id) || prevRecipe;
+          });
+        
+          return updated;
+        });
+        
+        
       } else {
         alert("❌ Failed to save. Please try again.");
       }
@@ -410,6 +433,7 @@ const sortedRecipes = prioritizeExpiring
       alert("❌ Something went wrong trying to save this recipe.");
     }
   };
+  
   
   // ✅ Fetch Recipes from API
   const fetchRecipes = async () => {
@@ -1245,12 +1269,21 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
                       View Full Recipe
                     </a>
                     {activeView === "favorites" ? (
-  <button
-    onClick={() => removeFavorite(openRecipe.id)}
-    className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
-  >
-    💔 Remove from Favorites
-  </button>
+                      <button
+  onClick={async () => {
+    const confirmDelete = window.confirm("Are you sure you want to remove this favorite?");
+    if (!confirmDelete) return;
+
+    await removeFavorite(openRecipe.id);
+    alert("✅ Removed from favorites.");
+    setOpenRecipe(null);  // Close the detail view
+    refreshData();        // Refresh favorite list
+  }}
+  className="bg-gray-300 text-black px-4 py-2 rounded-lg hover:bg-gray-400 transition"
+>
+  💔 Remove from Favorites
+</button>
+
 ) : isFavorited(openRecipe) ? (
   <button
     disabled
