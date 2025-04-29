@@ -662,7 +662,14 @@ return (<div className="fixed inset-0 flex flex-col w-screen h-screen overflow-h
       >
         ✖
       </button>
-      <RegisterPage onClose={() => setShowRegister(false)} />
+      <RegisterPage
+  onClose={() => setShowRegister(false)}
+  onLoginClick={() => {
+    setShowRegister(false);
+    setShowLogin(true);
+  }}
+/>
+
     </div>
   </div>
 )}
@@ -924,31 +931,6 @@ if (matches.length > 0 && matches[0].item.toLowerCase() !== name) {
             )}
 
             <hr className="my-4 border-gray-300" />
-
-            {/* AI Recommendation Button */}
-            <button
-              onClick={askAiForRecipe}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded-lg mt-2 flex items-center justify-center space-x-2 transition-colors"
-            >
-              {aiLoading ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  <span>Generating...</span>
-                </>
-              ) : (
-                <>
-                  <span className="font-medium">🤖 AI Recipe Suggestion</span>
-                </>
-              )}
-            </button>
-
-            {/* Display AI Recommendation */}
-            {aiRecipe && (
-              <div className="bg-white p-4 rounded-lg shadow-md mt-4 border-l-4 border-purple-500 overflow-y-auto max-h-64">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">🤖 AI Suggested Recipe:</h3>
-                <p className="text-gray-700 whitespace-pre-line text-sm">{aiRecipe}</p>
-              </div>
-            )}
           </div>
         </div>
 

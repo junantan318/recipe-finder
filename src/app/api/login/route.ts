@@ -7,22 +7,29 @@ import bcrypt from 'bcryptjs';
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 export async function POST(req: NextRequest) {
-  await dbConnect();
-  const { email, password } = await req.json();
+  try {
+    await dbConnect();
+    const { email, password } = await req.json();
 
-  const user = await User.findOne({ email });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    }
+
+    const token = jwt.sign(
+      { email: user.email },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    return NextResponse.json({ token, email: user.email }, { status: 200 });
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
-  console.log("🔐 Signing token with secret:", process.env.JWT_SECRET);
-  const token = jwt.sign(
-    { email: user.email }, // payload
-    JWT_SECRET,            // ✅ sign with correct secret
-    { expiresIn: '7d' }
-    
-  );
-
-  return NextResponse.json({ token });
 }
