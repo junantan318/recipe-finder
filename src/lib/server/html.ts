@@ -80,7 +80,7 @@ function instructionLines(v: unknown, out: string[] = []): string[] {
       const obj = item as Json;
       if (hasType(obj, "HowToSection")) {
         const name = plain(obj.name);
-        if (name) out.push(`${name}:`);
+        if (name) out.push(name.endsWith(":") ? name : `${name}:`);
         instructionLines(obj.itemListElement, out);
       } else if (obj.itemListElement) {
         instructionLines(obj.itemListElement, out);

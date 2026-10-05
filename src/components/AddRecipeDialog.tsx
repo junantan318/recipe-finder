@@ -5,6 +5,7 @@ import { ArrowLeft, ClipboardPaste, ExternalLink, Link2, Loader2, PenLine, X } f
 import { emptyDraft, type ImportResponse, type Recipe, type RecipeDraft } from "@/lib/types";
 import { detectSource, PLATFORM_LABEL } from "@/lib/url";
 import RecipeEditor from "./RecipeEditor";
+import ClipBookmark from "./ClipBookmark";
 import { Banner, Overlay, PlatformIcon, SourceBadge, Thumbnail, formatDate } from "./ui";
 
 type Step =
@@ -26,12 +27,15 @@ export default function AddRecipeDialog({
   onSaved,
   onOpenExisting,
   ytDlp,
+  initial,
 }: {
   open: boolean;
   onClose: () => void;
   onSaved: (recipe: Recipe) => void;
   onOpenExisting: (recipe: Recipe) => void;
   ytDlp: string | null | undefined;
+  // A result handed over by the "Save to Recipe Box" bookmark, shown instead of the link step.
+  initial?: ImportResponse | null;
 }) {
   const [step, setStep] = useState<Step>({ name: "enter" });
   const [url, setUrl] = useState("");
@@ -41,14 +45,22 @@ export default function AddRecipeDialog({
 
   useEffect(() => {
     if (open) {
-      setStep({ name: "enter" });
       setUrl("");
-      setDraft(null);
       setSaveError("");
+      if (initial?.duplicate) {
+        setDraft(null);
+        setStep({ name: "duplicate", recipe: initial.duplicate });
+      } else if (initial?.draft) {
+        setDraft(initial.draft);
+        setStep({ name: "preview", outcome: initial.outcome });
+      } else {
+        setDraft(null);
+        setStep({ name: "enter", error: initial?.error });
+      }
     } else {
       abort.current?.abort();
     }
-  }, [open]);
+  }, [open, initial]);
 
   const detected = detectSource(url);
 
@@ -240,6 +252,7 @@ function EnterLink({
       <button type="button" className="btn-quiet w-full" onClick={onManual}>
         <PenLine className="h-4 w-4" /> Type in a recipe without a link
       </button>
+      <ClipBookmark />
     </form>
   );
 }
@@ -316,6 +329,7 @@ function OutcomeBanner({ outcome, draft }: { outcome: ImportResponse["outcome"] 
           Open original <ExternalLink className="h-3 w-3" />
         </a>
       )}
+      {draft.platform === "web" && draft.warnings.some((w) => w.includes("blocks automated requests")) && <ClipBookmark compact />}
     </Banner>
   );
 }

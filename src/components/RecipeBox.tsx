@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Plus, Search, Star, X, CircleAlert } from "lucide-react";
-import { isComplete, type Platform, type Recipe } from "@/lib/types";
+import { isComplete, type ImportResponse, type Platform, type Recipe } from "@/lib/types";
 import { searchRecipes } from "@/lib/search";
 import { PLATFORM_LABEL } from "@/lib/url";
 import AddRecipeDialog from "./AddRecipeDialog";
@@ -24,6 +24,7 @@ export default function RecipeBox() {
   const [toast, setToast] = useState("");
   const [highlight, setHighlight] = useState<number | null>(null);
   const [ytDlp, setYtDlp] = useState<string | null | undefined>(undefined);
+  const [clip, setClip] = useState<ImportResponse | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -35,6 +36,19 @@ export default function RecipeBox() {
       .then((r) => r.json())
       .then((s) => setYtDlp(s.ytDlp))
       .catch(() => setYtDlp(null));
+
+    // Opened by the "Save to Recipe Box" bookmark: show that page's preview.
+    const clipId = new URLSearchParams(window.location.search).get("clip");
+    if (clipId) {
+      window.history.replaceState(null, "", "/");
+      fetch(`/api/clip/${encodeURIComponent(clipId)}`)
+        .then((r) => r.json())
+        .then((data: ImportResponse & { error?: string }) => {
+          setClip(data.draft || data.duplicate ? data : { duplicate: null, draft: null, outcome: "failed", error: data.error });
+          setAdding(true);
+        })
+        .catch(() => setToast("Couldn't load the page from the bookmark."));
+    }
   }, []);
 
   useEffect(() => {
@@ -201,15 +215,21 @@ export default function RecipeBox() {
       <AddRecipeDialog
         open={adding}
         ytDlp={ytDlp}
-        onClose={() => setAdding(false)}
+        initial={clip}
+        onClose={() => {
+          setAdding(false);
+          setClip(null);
+        }}
         onSaved={(r) => {
           setRecipes((list) => [r, ...(list ?? [])]);
           setAdding(false);
+          setClip(null);
           setHighlight(r.id);
           setToast(isComplete(r) ? `Saved "${r.title}"` : `Saved "${r.title}" — it still needs details`);
         }}
         onOpenExisting={(r) => {
           setAdding(false);
+          setClip(null);
           setOpenId(r.id);
         }}
       />

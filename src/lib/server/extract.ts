@@ -7,7 +7,9 @@ import { describeFetchError, fetchImageDataUrl, fetchJson, fetchPage } from "./f
 import { findYtDlp, ytDlpInfo, ytDlpTranscript } from "./ytdlp.ts";
 import { findBySourceKey } from "./db.ts";
 
-export async function importFromUrl(input: string): Promise<ImportResponse> {
+// `pageHtml` is set when the page comes from the user's own browser (the "Save to Recipe Box"
+// bookmark), for sites that refuse requests from the app itself.
+export async function importFromUrl(input: string, pageHtml?: string): Promise<ImportResponse> {
   const source = detectSource(input);
   if (!source) {
     return { duplicate: null, draft: null, outcome: "failed", error: "That doesn't look like a web link." };
@@ -23,7 +25,7 @@ export async function importFromUrl(input: string): Promise<ImportResponse> {
   // Hashtags or page keywords from the source; inferred tags are added at the end.
   let sourceTagNames: string[] = [];
   try {
-    if (source.platform === "web") sourceTagNames = await importWeb(source, draft);
+    if (source.platform === "web") sourceTagNames = await importWeb(source, draft, pageHtml);
     else if (source.platform === "youtube") sourceTagNames = await importYouTube(source, draft);
     else sourceTagNames = await importInstagram(source, draft);
   } catch (err) {
@@ -67,10 +69,10 @@ function missingMessage(draft: RecipeDraft, where: string): void {
 
 // ---------- Recipe websites ----------
 
-async function importWeb(source: DetectedSource, draft: RecipeDraft): Promise<string[]> {
+async function importWeb(source: DetectedSource, draft: RecipeDraft, pageHtml?: string): Promise<string[]> {
   let page;
   try {
-    page = await fetchPage(source.canonicalUrl);
+    page = pageHtml ? { ok: true, status: 200, html: pageHtml } : await fetchPage(source.canonicalUrl);
   } catch (err) {
     draft.warnings.push(`Couldn't load the page (${describeFetchError(err)}). The link is kept — add the recipe below.`);
     return [];
@@ -78,7 +80,7 @@ async function importWeb(source: DetectedSource, draft: RecipeDraft): Promise<st
   if (!page.ok) {
     draft.warnings.push(
       [401, 402, 403, 429].includes(page.status)
-        ? `The site blocks automated requests (HTTP ${page.status}). Paste the recipe below.`
+        ? `The site blocks automated requests (HTTP ${page.status}). Open the page in your browser and click the "Save to Recipe Box" bookmark, or paste the recipe below.`
         : `The page returned HTTP ${page.status}. Check the link, or paste the recipe below.`,
     );
     return [];

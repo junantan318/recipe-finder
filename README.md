@@ -68,10 +68,20 @@ Rules the importer follows:
 - **Duplicates** are recognised however the link is written: `youtu.be/…`, `/shorts/…` and `watch?v=…` match, as do `/reel/…` and `/p/…`, and tracking parameters are ignored.
 - **An incomplete import is still saved** with its link. Paste the caption or transcript into the preview (or later, in Edit), and "Fill in from this text" runs the same parser. Or type the recipe in.
 
+## Sites that block the app: the "Save to Recipe Box" bookmark
+
+Many recipe blogs sit behind Cloudflare or similar bot checks (for example hungryhappens.net, preppykitchen.com and allrecipes.com). They show the page to people but refuse requests from apps, `curl` included. Recipe Box doesn't try to get past these checks. Instead:
+
+1. Open **Add recipe link** in the app and drag the **Save to Recipe Box** button to your browser's bookmarks bar (Ctrl+Shift+B shows the bar). You only do this once.
+2. Open the recipe page in your browser as normal.
+3. Click the bookmark. The page you're looking at is sent to Recipe Box, which opens the usual preview. Nothing is saved until you click **Save**. Back returns to the recipe page.
+
+Recipe Box must be running when you click the bookmark. The bookmark remembers the app's address, so drag it from the app at `http://127.0.0.1:3000`. This is for recipe websites; Instagram and YouTube links still go through the normal import.
+
 ## Known limitations
 
 - **Instagram** depends on yt-dlp's logged-out access. Instagram refuses some posts (private, age-restricted, or temporarily rate-limited). The app never logs in or uses your cookies, so for those posts you paste the caption.
-- **Sites with bot protection are not read.** Allrecipes and other Dotdash Meredith sites return HTTP 402 to the app, and Preppy Kitchen uses a Cloudflare check (HTTP 403). The app says so and keeps the link; paste the recipe.
+- **Sites with bot protection can't be imported by pasting the link.** For example, Allrecipes returns HTTP 402 and Cloudflare-protected blogs return 403. Use the "Save to Recipe Box" bookmark from your browser, or paste the recipe.
 - **Captions written as prose** ("add some garlic, then…") give no ingredient or step lists. They're kept as source text for you to copy from.
 - **Transcripts aren't parsed into steps**, because spoken instructions rarely split cleanly and quantities are often only shown on screen.
 - **Tag inference** is a simple English keyword list.
@@ -94,7 +104,7 @@ Rules the importer follows:
 
 ```
 src/app/page.tsx                 the single page
-src/app/api/                     import, recipes CRUD, thumbnails, status
+src/app/api/                     import, clip (bookmark), recipes CRUD, thumbnails, status
 src/components/                  RecipeBox (grid, search, filters), AddRecipeDialog,
                                  RecipeDetail, RecipeEditor, ui
 src/lib/                         shared by server and browser: types, url, text-parse, tags, search
