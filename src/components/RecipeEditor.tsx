@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { ChevronDown, ExternalLink, ImagePlus, Wand2 } from "lucide-react";
 import type { FieldName, FieldSource, RecipeDraft, SourceTextKind, Tag } from "@/lib/types";
-import { firstLineTitle, parseRecipeText } from "@/lib/text-parse";
+import { countItems, firstLineTitle, parseRecipeText } from "@/lib/text-parse";
 import { inferTags, mergeTags, normaliseTag, sourceTags } from "@/lib/tags";
 import { Provenance, TagChip, Thumbnail } from "./ui";
 
@@ -249,14 +249,14 @@ function SourceTexts({ value, onApply }: { value: EditorValue; onApply: (next: E
       next.fieldSources.ingredients = source;
       next.uncertain = next.uncertain.filter((f) => f !== "ingredients");
       if (parsed.ingredientsFound === "pattern") next.uncertain.push("ingredients");
-      filled.push(`${parsed.ingredients.length} ingredients`);
+      filled.push(`${countItems(parsed.ingredients)} ingredients`);
     }
     if (parsed.steps.length && (!hasSteps || replace)) {
       next.steps = parsed.steps;
       next.fieldSources.steps = source;
       next.uncertain = next.uncertain.filter((f) => f !== "steps");
       if (parsed.stepsFound === "pattern") next.uncertain.push("steps");
-      filled.push(`${parsed.steps.length} steps`);
+      filled.push(`${countItems(parsed.steps)} steps`);
     }
     if (!value.title.trim()) {
       const title = firstLineTitle(text);

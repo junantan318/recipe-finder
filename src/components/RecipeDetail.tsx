@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, ChevronDown, ExternalLink, Loader2, Pencil, Star, Trash2, X } from "lucide-react";
 import { isComplete, type FieldName, type Recipe } from "@/lib/types";
-import { splitQuantity } from "@/lib/text-parse";
+import { countItems, isSectionHeading, splitQuantity } from "@/lib/text-parse";
 import RecipeEditor, { type EditorValue } from "./RecipeEditor";
 import { Banner, Provenance, SourceBadge, TagChip, Thumbnail, formatDate } from "./ui";
 
@@ -148,11 +148,11 @@ export default function RecipeDetail({
             </Banner>
           )}
 
-          <Section title="Ingredients" count={recipe.ingredients.length} source={fs.ingredients} uncertain={unsure("ingredients")} onConfirm={() => confirmField("ingredients")}>
+          <Section title="Ingredients" count={countItems(recipe.ingredients)} source={fs.ingredients} uncertain={unsure("ingredients")} onConfirm={() => confirmField("ingredients")}>
             {recipe.ingredients.length ? (
               <ul className="divide-y divide-line rounded-xl border border-line">
                 {recipe.ingredients.map((line, i) => {
-                  const heading = line.endsWith(":");
+                  const heading = isSectionHeading(line);
                   const { qty, rest } = splitQuantity(line);
                   // Only use a quantity column when lines start with quantities ("2 cups cream"),
                   // not for "Cream - 2 cups" style lists.
@@ -174,13 +174,13 @@ export default function RecipeDetail({
             )}
           </Section>
 
-          <Section title="Steps" count={recipe.steps.length} source={fs.steps} uncertain={unsure("steps")} onConfirm={() => confirmField("steps")}>
+          <Section title="Steps" count={countItems(recipe.steps)} source={fs.steps} uncertain={unsure("steps")} onConfirm={() => confirmField("steps")}>
             {recipe.steps.length ? (
               <ol className="space-y-3">
                 {(() => {
                   let n = 0;
                   return recipe.steps.map((line, i) =>
-                    line.endsWith(":") ? (
+                    isSectionHeading(line) ? (
                       <li key={i} className="pt-1 font-display text-[14px] font-semibold">{line}</li>
                     ) : (
                       <li key={i} className="grid grid-cols-[28px_1fr] gap-2 text-[15px] leading-relaxed">

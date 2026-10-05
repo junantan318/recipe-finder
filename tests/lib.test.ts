@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { detectSource } from "../src/lib/url.ts";
-import { parseRecipeText, firstLineTitle, stripHashtags, splitQuantity } from "../src/lib/text-parse.ts";
+import { parseRecipeText, firstLineTitle, stripHashtags, splitQuantity, countItems } from "../src/lib/text-parse.ts";
 import { inferTags, sourceTags } from "../src/lib/tags.ts";
 import { searchRecipes } from "../src/lib/search.ts";
 import { parseRecipePage } from "../src/lib/server/html.ts";
@@ -152,4 +152,10 @@ test("splitQuantity: mixed fractions and ranges", () => {
   assert.deepEqual(splitQuantity("1 1/2 cups chicken stock"), { qty: "1 1/2 cups", rest: "chicken stock" });
   assert.deepEqual(splitQuantity("2-3 cloves garlic"), { qty: "2-3 cloves", rest: "garlic" });
   assert.deepEqual(splitQuantity("1½ tbsp butter"), { qty: "1½ tbsp", rest: "butter" });
+});
+
+test("countItems: section headings aren't counted as steps", () => {
+  const steps = ["Meatballs:", "Preheat the oven.", "Form the meatballs.", "Bake.", "Sauce:", "Melt butter.", "Add stock.", "Simmer."];
+  assert.equal(countItems(steps), 6);
+  assert.equal(countItems(["", "2 eggs"]), 1);
 });

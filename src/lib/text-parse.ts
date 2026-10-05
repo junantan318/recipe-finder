@@ -149,6 +149,16 @@ export function parseRecipeText(text: string): ParsedText {
   return result;
 }
 
+// Section labels inside a list ("Meatballs:", "For the sauce:") are shown as headings,
+// not numbered, and don't count as ingredients or steps.
+export function isSectionHeading(line: string): boolean {
+  return line.trim().endsWith(":");
+}
+
+export function countItems(lines: string[]): number {
+  return lines.filter((l) => l.trim() && !isSectionHeading(l)).length;
+}
+
 // "THE Killer Pasta! 🔥 #shorts #recipe" -> "THE Killer Pasta! 🔥"
 export function stripHashtags(text: string): string {
   return text.replace(HASHTAG, "").replace(/\s{2,}/g, " ").replace(/[\s|·-]+$/, "").trim();
