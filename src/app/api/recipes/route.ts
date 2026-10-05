@@ -1,19 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { NextResponse } from "next/server";
+import { createRecipe, findBySourceKey, listRecipes } from "@/lib/server/db.ts";
+import { toDraft } from "@/lib/server/validate.ts";
 
-export async function GET(req: NextRequest) {
-  const archivePath = path.resolve(process.cwd(), "data/recipes.json");
+export const dynamic = "force-dynamic";
 
-  try {
-    const raw = fs.readFileSync(archivePath, "utf-8");
-    const recipes = JSON.parse(raw);
-    return NextResponse.json(recipes);
-  } catch (err: any) {
-    console.error("❌ Failed to load archive:", err.message);
-    return NextResponse.json(
-      { error: "Failed to load archive", details: err.message },
-      { status: 500 }
-    );
+export function GET() {
+  return NextResponse.json(listRecipes());
+}
+
+export async function POST(request: Request) {
+  const draft = toDraft(await request.json());
+  if (draft.sourceKey) {
+    const duplicate = findBySourceKey(draft.sourceKey);
+    if (duplicate) return NextResponse.json({ error: "Already saved", duplicate }, { status: 409 });
   }
+  return NextResponse.json(createRecipe(draft), { status: 201 });
 }

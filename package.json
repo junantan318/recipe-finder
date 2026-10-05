@@ -1,29 +1,28 @@
 {
-  "name": "recipe-finder",
+  "name": "recipe-box",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev -H 127.0.0.1",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "next start -H 127.0.0.1",
+    "app": "node scripts/start.ts",
+    "lint": "next lint",
+    "test": "node --test \"tests/*.test.ts\"",
+    "try-import": "node scripts/try-import.ts",
+    "seed:samples": "node scripts/seed-samples.ts"
   },
   "dependencies": {
-    "axiom": "^0.1.6",
-    "axios": "^1.8.4",
-    "bcryptjs": "^3.0.2",
+    "better-sqlite3": "^13.0.3",
     "cheerio": "^1.0.0",
-    "fuse.js": "^7.1.0",
-    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.475.0",
-    "mongoose": "^8.13.1",
     "next": "15.1.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@types/jsonwebtoken": "^9.0.9",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -31,7 +30,7 @@
     "eslint-config-next": "15.1.6",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "ts-node": "^10.9.1",
     "typescript": "^5"
-  }
+  },
+  "type": "module"
 }

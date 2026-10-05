@@ -2,34 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 🌍 Global Styles */
+:root {
+  --paper: 245 246 248;
+  --surface: 255 255 255;
+  --ink: 25 28 33;
+  --muted: 100 107 118;
+  --line: 226 229 234;
+  --basil: 46 106 78;
+  --basil-soft: 230 240 235;
+  --saffron: 185 118 9;
+  --saffron-soft: 253 243 225;
+  --danger: 180 52 43;
+  --danger-soft: 251 236 235;
+  --ig: 177 58 122;
+  --yt: 204 42 34;
+  --web: 54 89 124;
+  --manual: 91 97 107;
+}
+
+html {
+  background: rgb(var(--paper));
+  color: rgb(var(--ink));
+  -webkit-font-smoothing: antialiased;
+}
+
 body {
-  @apply bg-gradient-to-br from-blue-50 to-blue-100 text-gray-800;
-  font-family: "Inter", sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background: rgb(var(--paper));
   min-height: 100vh;
-  margin: 0;
 }
 
-/* 🎨 Improve Text Styling */
-h1, h2, h3 {
-  @apply font-bold text-gray-900;
+:focus-visible {
+  outline: 2px solid rgb(var(--basil));
+  outline-offset: 2px;
 }
 
-p {
-  @apply text-gray-700 leading-relaxed;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
 }
 
-/* 🌟 Center Content */
-.container {
-  @apply flex items-center justify-center min-h-screen px-4;
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* 💡 Responsive Tweaks */
-@media (max-width: 768px) {
-  .container {
-    @apply px-6;
+@layer components {
+  .stamp {
+    @apply inline-flex items-center gap-1 rounded-[3px] border px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase tracking-[0.08em];
+  }
+  .field-label {
+    @apply font-display text-[13px] font-semibold tracking-tight text-ink;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-surface px-3 py-2 text-[14px] text-ink placeholder:text-muted/70 focus:border-basil focus:outline-none focus:ring-2 focus:ring-basil/15;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-basil text-white hover:bg-[#245a41];
+  }
+  .btn-quiet {
+    @apply btn border border-line bg-surface text-ink hover:bg-paper;
+  }
+  .btn-ghost {
+    @apply btn text-muted hover:bg-ink/5 hover:text-ink;
   }
 }

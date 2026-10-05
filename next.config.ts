@@ -1,14 +1,9 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
   reactStrictMode: true,
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "img.buzzfeed.com",
-      },
-    ],
-  },
+  // Native SQLite module: load it from node_modules at runtime instead of bundling it.
+  serverExternalPackages: ["better-sqlite3"],
 };
 
-module.exports = nextConfig;
+export default nextConfig;
